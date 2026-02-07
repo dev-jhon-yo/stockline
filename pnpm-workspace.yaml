@@ -1,0 +1,92 @@
+packages:
+  - src/*
+
+catalog:
+
+catalogMode: strict
+
+catalogs:
+  build:
+    rbxts-transform-debug: 2.2.0
+    rbxts-transform-env: 3.0.0
+    rbxts-transformer-flamework: 1.3.2
+    roblox-ts: 3.0.0
+  lint:
+    "@eslint/config-inspector": 1.3.0
+    "@isentinel/eslint-config": 4.0.1
+    eslint: 9.39.1
+    eslint-plugin-pnpm: 1.3.0
+    eslint-plugin-react-hooks: 7.0.1
+    eslint-plugin-react-naming-convention: 2.3.1
+    eslint-plugin-react-roblox-hooks: 5.1.0-rbx.1
+    eslint-plugin-react-x: 2.3.1
+    lint-staged: 16.2.6
+  prod:
+    "@flamework/components": 1.3.2
+    "@flamework/core": 1.3.2
+    "@flamework/networking": 1.3.2
+    "@rbxts/flamework-binary-serializer": 0.7.0
+    "@rbxts/janitor": 1.18.3-ts.0
+    "@rbxts/lapis": 0.3.8
+    "@rbxts/lapis-mockdatastore": 0.3.7
+    "@rbxts/log": 0.6.3
+    "@rbxts/luau-polyfill": 1.1.3
+    "@rbxts/message-templates": 0.3.2
+    "@rbxts/player-module-types": 0.1.0
+    "@rbxts/pretty-react-hooks": 0.6.4
+    "@rbxts/promise-child": 1.2.1
+    "@rbxts/rbx-better-signal": 2.1.0
+    "@rbxts/rbx-debug": 1.0.2-ts.0
+    "@rbxts/react": 17.2.3
+    "@rbxts/react-reflex": 0.3.7
+    "@rbxts/react-roblox": 17.2.3
+    "@rbxts/reflex": 4.3.1
+    "@rbxts/remap": 0.2.2
+    "@rbxts/ripple": 0.9.3
+    "@rbxts/services": 1.6.0
+    "@rbxts/sift": 0.0.11
+    "@rbxts/t": 3.2.1
+    "@rbxts/ui-labs": 2.4.2
+    "@rbxts/validate-tree": 2.0.2
+  script:
+    "@antfu/ni": 27.0.1
+    "@commitlint/cli": 20.1.0
+    "@commitlint/config-conventional": 20.0.0
+    "@commitlint/prompt-cli": 20.1.0
+    "@commitlint/types": 20.0.0
+    git-pull-run: 1.6.2
+    husky: 9.1.7
+    jiti: 2.6.1
+    rbxts-build: 2.4.3
+    rimraf: 6.1.0
+  types:
+    "@isentinel/tsconfig": 1.0.0
+    "@rbxts/compiler-types": 3.0.0-types.0
+    "@rbxts/types": 1.0.889
+    ts-plugin-sort-import-suggestions: 1.0.4
+    typescript: 5.5.3
+
+configDependencies:
+  "@pnpm/trusted-deps": 0.1.0+sha512-IERT0uXPBnSZGsCmoSuPzYNWhXWWnKkuc9q78KzLdmDWJhnrmvc7N4qaHJmaNKIusdCH2riO3iE34Osohj6n8w==
+
+enablePrePostScripts: true
+
+ignoreWorkspaceRootCheck: true
+
+onlyBuiltDependencies:
+  - esbuild
+  - oxc-resolver
+  - unrs-resolver
+
+onlyBuiltDependenciesFile: node_modules/.pnpm-config/@pnpm/trusted-deps/allow.json
+
+patchedDependencies:
+  rbxts-transform-env: patches/rbxts-transform-env.patch
+  roblox-ts: patches/roblox-ts.patch
+
+publicHoistPattern:
+  - "*@rbxts*"
+
+saveExact: true
+
+shellEmulator: true

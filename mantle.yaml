@@ -1,0 +1,64 @@
+owner: personal
+
+# If it's a group, you need to change it to this:
+# owner:
+#   group: group_id
+
+state:
+  remote:
+    bucket: christopher-buss-mantle-states
+    key: roblox-ts-example
+    region: eu-central-1
+
+environments:
+  - branches:
+      - develop
+    label: development
+    targetAccess: private
+    targetNamePrefix: environmentLabel
+    targetOverrides:
+      icon: assets/marketing/example-icon.png
+
+  - branches:
+      - main
+    label: production
+    targetAccess: public
+
+target:
+  experience:
+    badges:
+      1-example:
+        description: This is an example badge.
+        enabled: true
+        icon: assets/badges/example-badge.png
+        name: Welcome Example Badge
+    configuration:
+      avatarAnimationType: playerChoice
+      avatarType: playerChoice
+      enableStudioAccessToApis: true
+      playableDevices: [computer, console, phone, tablet]
+      privateServers:
+        price: 0
+    icon: assets/marketing/example-icon.png
+    passes:
+      1-example:
+        description: This is an example pass.
+        icon: assets/marketing/example-icon.png
+        name: Example Pass
+        price: 5
+    places:
+      start:
+        configuration:
+          allowCopying: true # !!! TURN THIS OFF FOR YOUR GAME !!!
+          description: A project template for Roblox TypeScript projects.
+          maxPlayerCount: 700
+          name: roblox-ts Project Template
+        file: place.rbxl
+    products:
+      1-example:
+        description: This is an example product.
+        icon: assets/marketing/example-icon.png
+        name: Example Product
+        price: 5
+    spatialVoice:
+      enabled: true

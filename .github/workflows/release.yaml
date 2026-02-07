@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+    paths:
+      - "src/**/*"
+      - assets
+      - build.project.json
+      - mantle.yaml
+      - package.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: production_environment
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2
+
+      - name: Install Dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Compile
+        run: pnpm prod:build --verbose
+
+      - name: Build project
+        run: rojo build ./build.project.json --output place.rbxl
+
+      - name: Upload place
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          if-no-files-found: error
+          name: place
+          path: place.rbxl
+
+  deploy:
+    needs: build
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) }}
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2
+
+      - name: Deploy to Roblox
+        uses: ./.github/actions/deploy
+        with:
+          deploy-flags: --allow-purchases
+          environment: production
+          expected-ip: ${{ vars.EXPECTED_IP }}
+          mantle-aws-access-key-id: ${{ secrets.MANTLE_AWS_ACCESS_KEY_ID }}
+          mantle-aws-secret-access-key: ${{ secrets.MANTLE_AWS_SECRET_ACCESS_KEY }}
+          mantle-open-cloud-api-key: ${{ secrets.MANTLE_OPEN_CLOUD_API_KEY }}
+          roblosecurity: ${{ secrets.ROBLOSECURITY }}
+          secret: ${{ secrets.WG_CONFIG_FILE }}
+    timeout-minutes: 15
+
+  tag:
+    needs: deploy
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+        with:
+          fetch-depth: 0
+
+      - id: tag_version
+        name: Bump version and push tag
+        uses: mathieudutour/github-tag-action@a22cf08638b34d5badda920f9daf6e72c477b07b # v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download place artifact
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: place
+
+      - name: Create a GitHub release
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1
+        with:
+          artifacts: place.rbxl
+          body: ${{ steps.tag_version.outputs.changelog }}
+          name: Release ${{ steps.tag_version.outputs.new_tag }}
+          tag: ${{ steps.tag_version.outputs.new_tag }}

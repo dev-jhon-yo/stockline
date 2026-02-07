@@ -1,0 +1,64 @@
+name: Release Develop
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "src/**/*"
+      - default.project.json
+      - mantle.yaml
+      - package.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: development_environment
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
+      - name: Compile
+        run: pnpm exec rbxtsc --verbose
+
+      - name: Build project
+        run: rojo build ./default.project.json --output place.rbxl
+
+      - name: Upload place
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          if-no-files-found: error
+          name: place
+          path: place.rbxl
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+
+      - uses: jdx/mise-action@5ac50f778e26fac95da98d50503682459e86d566 # v3.2
+
+      - name: Deploy to Roblox
+        timeout-minutes: 15
+        uses: ./.github/actions/deploy
+        with:
+          environment: development
+          expected-ip: ${{ vars.EXPECTED_IP }}
+          mantle-aws-access-key-id: ${{ secrets.MANTLE_AWS_ACCESS_KEY_ID }}
+          mantle-aws-secret-access-key: ${{ secrets.MANTLE_AWS_SECRET_ACCESS_KEY }}
+          mantle-open-cloud-api-key: ${{ secrets.MANTLE_OPEN_CLOUD_API_KEY }}
+          roblosecurity: ${{ secrets.ROBLOSECURITY }}
+          secret: ${{ secrets.WG_CONFIG_FILE }}
