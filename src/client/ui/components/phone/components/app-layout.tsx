@@ -30,16 +30,17 @@ export function AppLayout({
         Native={{
           AnchorPoint: new Vector2(0.5, 0.5),
           BackgroundColor3: Color3.fromRGB(250, 249, 230),
-          Position: new UDim2(0.5, 0, 0.52, 0),
-          Size: new UDim2(0.94, 0, 0.78, 0),
+          Position: new UDim2(0.5, 0, 0.5, 0),
+          Size: new UDim2(2, 0, 1, 0),
           ZIndex: 5,
         }}
       >
-        <uicorner CornerRadius={new UDim(0, 30)} />
+        <uicorner CornerRadius={new UDim(0, 20)} />
         <uipadding
+          PaddingTop={new UDim(0, 45)}
+          PaddingBottom={new UDim(0, 20)}
           PaddingLeft={new UDim(0, 25)}
           PaddingRight={new UDim(0, 25)}
-          PaddingTop={new UDim(0, 40)}
         />
         {children}
       </Frame>
