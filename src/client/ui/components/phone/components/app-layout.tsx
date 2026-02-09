@@ -29,15 +29,15 @@ export function AppLayout({
         key="AppCanvas"
         Native={{
           AnchorPoint: new Vector2(0.5, 0.5),
-          BackgroundColor3: Color3.fromRGB(250, 249, 230),
-          Position: new UDim2(0.5, 0, 0.5, 0),
-          Size: new UDim2(2, 0, 1, 0),
+          BackgroundColor3: Color3.fromRGB(31, 32, 46),
+          Position: new UDim2(0.5, 0, 0.45, 0),
+          Size: new UDim2(3, 0, 1.2, 0),
           ZIndex: 5,
         }}
       >
         <uicorner CornerRadius={new UDim(0, 20)} />
         <uipadding
-          PaddingTop={new UDim(0, 45)}
+          PaddingTop={new UDim(0, 100)}
           PaddingBottom={new UDim(0, 20)}
           PaddingLeft={new UDim(0, 25)}
           PaddingRight={new UDim(0, 25)}
@@ -49,7 +49,7 @@ export function AppLayout({
         <TextLabel
           Font={Enum.Font.FredokaOne}
           Native={{
-            Position: new UDim2(0, 40, 0, 40),
+            Position: new UDim2(0, 20, 0, 40),
             Size: new UDim2(0.4, 0, 0, 30),
             TextXAlignment: Enum.TextXAlignment.Left,
           }}
@@ -70,7 +70,7 @@ export function AppLayout({
           AnchorPoint={new Vector2(0.5, 1)}
           BackgroundColor3={Color3.fromRGB(255, 255, 255)}
           Event={{ Activated: onBack }}
-          Position={new UDim2(0.5, 0, 1, -20)}
+          Position={new UDim2(0.5, 0, 1, 130)}
           Size={new UDim2(0, 160, 0, 50)}
           Text=""
         >

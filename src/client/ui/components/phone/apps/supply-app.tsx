@@ -1,5 +1,5 @@
 // cspell:disable
-import React, { useState } from "@rbxts/react";
+import React, { useState, useMemo } from "@rbxts/react";
 import { Frame, TextLabel, Group } from "../../primitive";
 import { AppLayout } from "../components/app-layout";
 import type { AppIdentity } from "../types";
@@ -8,80 +8,73 @@ interface ShopItem {
   id: number;
   name: string;
   icon: string;
-  requirements: {
-    label: string;
-    amount: string;
-    color: Color3;
-    icon: string;
-  }[];
+  category: "Tech" | "Resource" | "Food";
+  price: number;
+  rarity: "COMMON" | "RARE" | "LEGENDARY";
 }
 
+const MOCK_ITEM_ICON = "rbxassetid://128452493475727";
 const SHOP_DATA: ShopItem[] = [
   {
     id: 0,
-    name: "Wooden table mirror",
-    icon: "rbxassetid://16124021200",
-    requirements: [
-      {
-        label: "wood",
-        amount: "0 / 3",
-        color: Color3.fromRGB(180, 110, 60),
-        icon: "rbxassetid://16124021200",
-      },
-      {
-        label: "iron nugget",
-        amount: "1 / 1",
-        color: Color3.fromRGB(120, 130, 140),
-        icon: "rbxassetid://16124021200",
-      },
-    ],
+    name: "Ion Battery",
+    category: "Tech",
+    icon: MOCK_ITEM_ICON,
+    price: 150,
+    rarity: "COMMON",
   },
   {
     id: 1,
-    name: "Bonfire",
-    icon: "rbxassetid://16124021200",
-    requirements: [
-      {
-        label: "campfire",
-        amount: "0 / 1",
-        color: Color3.fromRGB(100, 200, 100),
-        icon: "rbxassetid://16124021200",
-      },
-      {
-        label: "wood",
-        amount: "0 / 10",
-        color: Color3.fromRGB(180, 110, 60),
-        icon: "rbxassetid://16124021200",
-      },
-    ],
+    name: "Nebula Wood",
+    category: "Resource",
+    icon: MOCK_ITEM_ICON,
+    price: 45,
+    rarity: "COMMON",
   },
   {
     id: 2,
-    name: "Jail bars",
-    icon: "rbxassetid://16124021200",
-    requirements: [
-      {
-        label: "iron nugget",
-        amount: "1 / 5",
-        color: Color3.fromRGB(120, 130, 140),
-        icon: "rbxassetid://16124021200",
-      },
-    ],
+    name: "Quantum CPU",
+    category: "Tech",
+    icon: MOCK_ITEM_ICON,
+    price: 850,
+    rarity: "RARE",
+  },
+  {
+    id: 3,
+    name: "Dried Ration",
+    category: "Food",
+    icon: MOCK_ITEM_ICON,
+    price: 20,
+    rarity: "COMMON",
+  },
+  {
+    id: 4,
+    name: "Void Essence",
+    category: "Resource",
+    icon: MOCK_ITEM_ICON,
+    price: 5000,
+    rarity: "LEGENDARY",
+  },
+  {
+    id: 5,
+    name: "Medi-Gel",
+    category: "Food",
+    icon: MOCK_ITEM_ICON,
+    price: 100,
+    rarity: "COMMON",
   },
 ];
 
 const SUPPLY_IDENTITY: AppIdentity = {
-  iconPattern: "rbxassetid://117926250151482",
+  iconPattern: "rbxassetid://128452493475727",
   tabs: [
-    {
-      id: "materials",
-      icon: "rbxassetid://16124021200",
-      tooltip: "Everything",
-    },
-    { id: "tools", icon: "rbxassetid://16124021200", tooltip: "Tools" },
+    { id: "all", icon: "rbxassetid://16124021200", tooltip: "All" },
+    { id: "resources", icon: "rbxassetid://16124021200", tooltip: "Resources" },
+    { id: "tech", icon: "rbxassetid://16124021200", tooltip: "Tech" },
+    { id: "food", icon: "rbxassetid://16124021200", tooltip: "Food" },
   ],
-  themeColor: Color3.fromRGB(241, 146, 32),
-  title: "Supply Shop",
+  themeColor: Color3.fromRGB(13, 13, 20),
+  title: "Galactic Exchange",
 };
 
 export function SupplyApp({
@@ -89,240 +82,392 @@ export function SupplyApp({
 }: {
   readonly onBack: () => void;
 }): React.Element {
-  const [selectedIdx, setSelectedIdx] = useState(0);
-  const currentItem = (SHOP_DATA[selectedIdx] ?? SHOP_DATA[0]) as ShopItem;
+  const [selectedIdx, setSelectedIdx] = useState<number | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState("all");
+  const [cart, setCart] = useState<ShopItem[]>([]);
+
+  const filteredItems = useMemo(() => {
+    if (activeTab === "all") return SHOP_DATA;
+    return SHOP_DATA.filter(
+      (item) =>
+        item.category.lower() === activeTab.lower() ||
+        (activeTab === "resources" && item.category === "Resource"),
+    );
+  }, [activeTab]);
+
+  const subtotal = useMemo(
+    () => cart.reduce((acc, item) => acc + item.price, 0),
+    [cart],
+  );
+  const total = subtotal + math.floor(subtotal * 0.02);
 
   return (
     <AppLayout
-      activeTabId="materials"
+      activeTabId={activeTab}
       identity={SUPPLY_IDENTITY}
       onBack={onBack}
-      onTabChange={() => {}}
+      onTabChange={setActiveTab}
     >
       <Group key="MainUI" Native={{ Size: new UDim2(1, 0, 1, 0) }}>
         <uipadding
-          PaddingBottom={new UDim(0, 25)}
-          PaddingLeft={new UDim(0, 30)}
-          PaddingRight={new UDim(0, 30)}
-          PaddingTop={new UDim(0, 15)}
+          PaddingBottom={new UDim(0, 20)}
+          PaddingLeft={new UDim(0, 20)}
+          PaddingRight={new UDim(0, 20)}
+          PaddingTop={new UDim(0, 20)}
         />
         <uilistlayout
           FillDirection={Enum.FillDirection.Horizontal}
-          Padding={new UDim(0, 35)}
+          Padding={new UDim(0, 20)}
           SortOrder={Enum.SortOrder.LayoutOrder}
         />
 
-        {/* ESQUERDA: GRID DE ITENS */}
-        <scrollingframe
-          key="InventoryGrid"
-          BackgroundTransparency={1}
-          BorderSizePixel={0}
-          Size={new UDim2(0.55, 0, 1, 0)}
-          CanvasSize={new UDim2(0, 0, 0, 0)}
-          AutomaticCanvasSize={Enum.AutomaticSize.Y}
-          ScrollBarThickness={4}
-          ScrollBarImageColor3={Color3.fromRGB(215, 210, 180)}
-        >
-          <uigridlayout
-            CellPadding={new UDim2(0, 12, 0, 12)}
-            CellSize={new UDim2(0, 80, 0, 110)}
-          />
-          {SHOP_DATA.map((item, i) => (
-            <ItemCard
-              key={item.id}
-              isSelected={selectedIdx === i}
-              onClick={() => setSelectedIdx(i)}
-              icon={item.icon}
-            />
-          ))}
-        </scrollingframe>
-
-        {/* DIREITA: PAINEL DE DETALHES */}
+        {/* COLUNA ESQUERDA: CARRINHO */}
         <Frame
-          key="DetailsPanel"
+          key="CartPanel"
           Native={{
-            Size: new UDim2(0.45, -35, 1, 0),
-            BackgroundColor3: Color3.fromRGB(243, 239, 217),
+            Size: new UDim2(0.3, -10, 1, 0),
+            BackgroundColor3: Color3.fromRGB(22, 22, 32),
             BorderSizePixel: 0,
+            LayoutOrder: 1,
           }}
         >
-          <uicorner CornerRadius={new UDim(0, 10)} />
+          <uicorner CornerRadius={new UDim(0, 12)} />
           <uipadding
-            PaddingBottom={new UDim(0, 20)}
-            PaddingLeft={new UDim(0, 20)}
-            PaddingRight={new UDim(0, 20)}
-            PaddingTop={new UDim(0, 20)}
+            PaddingBottom={new UDim(0, 15)}
+            PaddingLeft={new UDim(0, 15)}
+            PaddingRight={new UDim(0, 15)}
+            PaddingTop={new UDim(0, 15)}
+          />
+          <uilistlayout
+            FillDirection={Enum.FillDirection.Vertical}
+            Padding={new UDim(0, 15)}
           />
 
-          <Group key="Header" Native={{ Size: new UDim2(1, 0, 0, 40) }}>
+          <Frame
+            Native={{
+              Size: new UDim2(1, 0, 0, 60),
+              BackgroundColor3: Color3.fromRGB(30, 30, 45),
+            }}
+          >
+            <uicorner CornerRadius={new UDim(0, 8)} />
+            <uipadding PaddingLeft={new UDim(0, 12)} />
             <uilistlayout
-              FillDirection={Enum.FillDirection.Horizontal}
-              Padding={new UDim(0, 10)}
               VerticalAlignment={Enum.VerticalAlignment.Center}
-            />
-            <imagelabel
-              Image="rbxassetid://16124021200"
-              Size={new UDim2(0, 24, 0, 24)}
-              BackgroundTransparency={1}
-              ImageColor3={Color3.fromRGB(110, 85, 60)}
+              Padding={new UDim(0, 2)}
             />
             <TextLabel
-              Text={currentItem.name}
-              Font={Enum.Font.FredokaOne}
-              TextSize={22}
-              TextColor={Color3.fromRGB(110, 85, 60)}
+              Text="Available Credits"
+              TextSize={10}
+              TextColor={Color3.fromRGB(160, 160, 180)}
               Native={{
-                Size: new UDim2(1, -34, 1, 0),
+                Size: new UDim2(1, 0, 0, 14),
                 TextXAlignment: Enum.TextXAlignment.Left,
               }}
             />
-          </Group>
+            <TextLabel
+              Text="12,450"
+              Font={Enum.Font.GothamBold}
+              TextSize={18}
+              TextColor={Color3.fromRGB(255, 255, 255)}
+              Native={{
+                Size: new UDim2(1, 0, 0, 20),
+                TextXAlignment: Enum.TextXAlignment.Left,
+              }}
+            />
+          </Frame>
 
-          {/* Linha Divisória */}
+          {/* Lista do Carrinho - Corrigido ScrollView nativo */}
+          <scrollingframe
+            Size={new UDim2(1, 0, 1, -180)}
+            BackgroundTransparency={1}
+            BorderSizePixel={0}
+            CanvasSize={new UDim2(0, 0, 0, 0)}
+            AutomaticCanvasSize={Enum.AutomaticSize.Y}
+            ScrollBarThickness={2}
+          >
+            <uilistlayout Padding={new UDim(0, 8)} />
+            {cart.map((item, index) => (
+              <Frame
+                key={index}
+                Native={{
+                  Size: new UDim2(1, -5, 0, 35),
+                  BackgroundColor3: Color3.fromRGB(28, 28, 40),
+                }}
+              >
+                <uicorner CornerRadius={new UDim(0, 4)} />
+                <TextLabel
+                  Text={item.name}
+                  TextSize={12}
+                  TextColor={Color3.fromRGB(200, 200, 220)}
+                  Native={{
+                    Size: new UDim2(1, -30, 1, 0),
+                    Position: new UDim2(0, 10, 0, 0),
+                    TextXAlignment: Enum.TextXAlignment.Left,
+                  }}
+                />
+                <textbutton
+                  Text="×"
+                  TextSize={18}
+                  TextColor3={Color3.fromRGB(255, 100, 100)}
+                  BackgroundTransparency={1}
+                  Size={new UDim2(0, 30, 1, 0)}
+                  Position={new UDim2(1, 0, 0, 0)}
+                  AnchorPoint={new Vector2(1, 0)}
+                  Event={{
+                    Activated: () =>
+                      setCart(cart.filter((_, i) => i !== index)),
+                  }}
+                />
+              </Frame>
+            ))}
+          </scrollingframe>
+
           <Frame
             Native={{
-              Size: new UDim2(1, 0, 0, 2),
-              Position: new UDim2(0, 0, 0, 45),
-              BackgroundColor3: Color3.fromRGB(215, 210, 180),
-              BorderSizePixel: 0,
-            }}
-          />
-
-          <Group
-            key="Content"
-            Native={{
-              Size: new UDim2(1, 0, 1, -110),
-              Position: new UDim2(0, 0, 0, 60),
+              Size: new UDim2(1, 0, 0, 100),
+              BackgroundTransparency: 1,
             }}
           >
-            <uilistlayout Padding={new UDim(0, 10)} />
-            {currentItem.requirements.map((req, idx) => (
-              <RequirementRow key={idx} {...req} />
-            ))}
-          </Group>
-
-          <textbutton
-            Text="BUY"
-            Font={Enum.Font.FredokaOne}
-            TextSize={18}
-            TextColor3={Color3.fromRGB(255, 255, 255)}
-            BackgroundColor3={Color3.fromRGB(124, 206, 137)}
-            Size={new UDim2(1, 0, 0, 45)}
-            Position={new UDim2(0, 0, 1, -45)}
-          >
-            <uicorner CornerRadius={new UDim(0, 22)} />
-            <uistroke Color={Color3.fromRGB(255, 255, 255)} Thickness={2} />
-          </textbutton>
+            <uilistlayout
+              VerticalAlignment={Enum.VerticalAlignment.Bottom}
+              Padding={new UDim(0, 8)}
+            />
+            <CartRow label="Total" value={`⌬ ${total}`} isBold />
+            <textbutton
+              Text="Complete Trade"
+              Font={Enum.Font.GothamBold}
+              TextSize={14}
+              TextColor3={Color3.fromRGB(0, 0, 0)}
+              BackgroundColor3={
+                cart.size() > 0
+                  ? Color3.fromRGB(180, 150, 255)
+                  : Color3.fromRGB(45, 45, 60)
+              }
+              Size={new UDim2(1, 0, 0, 40)}
+            >
+              <uicorner CornerRadius={new UDim(0, 6)} />
+            </textbutton>
+          </Frame>
         </Frame>
+
+        {/* COLUNA DIREITA: GRID */}
+        <scrollingframe
+          Size={new UDim2(0.7, -10, 1, 0)}
+          BackgroundTransparency={1}
+          BorderSizePixel={0}
+          AutomaticCanvasSize={Enum.AutomaticSize.Y}
+          CanvasSize={new UDim2(0, 0, 0, 0)}
+          ScrollBarThickness={4}
+        >
+          <uigridlayout
+            CellPadding={new UDim2(0, 15, 0, 15)}
+            CellSize={new UDim2(0, 200, 0, 220)}
+            HorizontalAlignment={Enum.HorizontalAlignment.Left}
+          />
+          {filteredItems.map((item) => (
+            <ProductCard
+              key={item.id}
+              item={item}
+              isSelected={selectedIdx === item.id}
+              onClick={() => setSelectedIdx(item.id)}
+              onAdd={() => setCart([...cart, item])}
+            />
+          ))}
+        </scrollingframe>
       </Group>
     </AppLayout>
   );
 }
 
-function ItemCard({
+function ProductCard({
+  item,
   isSelected,
   onClick,
-  icon,
+  onAdd,
 }: {
+  item: ShopItem;
   isSelected: boolean;
   onClick: () => void;
-  icon: string;
+  onAdd: () => void;
 }) {
+  const rarityColor =
+    item.rarity === "LEGENDARY"
+      ? Color3.fromRGB(255, 180, 50)
+      : item.rarity === "RARE"
+        ? Color3.fromRGB(80, 200, 255)
+        : Color3.fromRGB(180, 180, 200);
+
   return (
-    <imagebutton
-      BackgroundColor3={
-        isSelected
-          ? Color3.fromRGB(255, 255, 255)
-          : Color3.fromRGB(195, 153, 107)
-      }
-      BorderSizePixel={0}
-      Event={{ Activated: onClick }}
+    <Frame
+      Native={{
+        BackgroundColor3: Color3.fromRGB(45, 47, 61),
+        BorderSizePixel: 0,
+      }}
     >
-      <uicorner CornerRadius={new UDim(0, 8)} />
-      <imagelabel
-        Image="rbxassetid://117926250151482"
-        Size={new UDim2(1, 0, 1, 0)}
-        ImageTransparency={0.85}
-        BackgroundTransparency={1}
-        ScaleType={Enum.ScaleType.Tile}
-        TileSize={new UDim2(0, 32, 0, 32)}
-      />
+      <uicorner CornerRadius={new UDim(0, 10)} />
       <uistroke
         Color={
           isSelected
-            ? Color3.fromRGB(255, 255, 255)
-            : Color3.fromRGB(165, 123, 87)
+            ? Color3.fromRGB(180, 150, 255)
+            : Color3.fromRGB(45, 45, 60)
         }
-        Thickness={isSelected ? 4 : 0}
+        Thickness={isSelected ? 2 : 1}
       />
-      <imagelabel
-        Image={icon}
-        Size={new UDim2(0.7, 0, 0.7, 0)}
-        Position={new UDim2(0.5, 0, 0.5, 0)}
-        AnchorPoint={new Vector2(0.5, 0.5)}
-        BackgroundTransparency={1}
-      />
-      {isSelected && (
-        <imagelabel
-          Image="rbxassetid://10712716301"
-          Size={new UDim2(0, 18, 0, 18)}
-          Position={new UDim2(1, -5, 1, -5)}
-          AnchorPoint={new Vector2(1, 1)}
-          BackgroundTransparency={1}
-          ImageColor3={Color3.fromRGB(124, 206, 137)}
-        />
-      )}
-    </imagebutton>
-  );
-}
 
-function RequirementRow({
-  label,
-  amount,
-  icon,
-}: {
-  label: string;
-  amount: string;
-  icon: string;
-}) {
-  return (
-    <Frame Native={{ Size: new UDim2(1, 0, 0, 40), BackgroundTransparency: 1 }}>
-      <uilistlayout
-        FillDirection={Enum.FillDirection.Horizontal}
-        VerticalAlignment={Enum.VerticalAlignment.Center}
-        Padding={new UDim(0, 10)}
-      />
-      <imagelabel
-        Image={icon}
-        Size={new UDim2(0, 30, 0, 30)}
+      <textbutton
+        Text=""
         BackgroundTransparency={1}
+        Size={new UDim2(1, 0, 1, 0)}
+        ZIndex={1}
+        Event={{ Activated: onClick }}
       />
-      <Group Native={{ Size: new UDim2(1, -40, 1, 0) }}>
-        <TextLabel
-          Text={label}
-          TextColor={Color3.fromRGB(140, 120, 100)}
-          TextSize={16}
+
+      <uipadding
+        PaddingBottom={new UDim(0, 70)}
+        PaddingLeft={new UDim(0, 12)}
+        PaddingRight={new UDim(0, 12)}
+        PaddingTop={new UDim(0, 3)}
+      />
+
+      <Frame
+        Native={{
+          Size: new UDim2(1, 0, 0, 100),
+          BackgroundColor3: Color3.fromRGB(24, 25, 36),
+          ZIndex: 2,
+        }}
+      >
+        <uicorner CornerRadius={new UDim(0, 8)} />
+        <imagelabel
+          Image={item.icon}
+          Size={new UDim2(0.6, 0, 0.6, 0)}
+          Position={new UDim2(0.5, 0, 0.5, 0)}
+          AnchorPoint={new Vector2(0.5, 0.5)}
+          BackgroundTransparency={1}
+          ScaleType={Enum.ScaleType.Fit}
+        />
+
+        <Frame
           Native={{
-            Size: new UDim2(0.6, 0, 1, 0),
+            Size: new UDim2(0, 60, 0, 16),
+            Position: new UDim2(1, -4, 0, 4),
+            AnchorPoint: new Vector2(1, 0),
+            BackgroundColor3: Color3.fromRGB(166, 173, 200),
+            BackgroundTransparency: 0.8,
+          }}
+        >
+          <uicorner CornerRadius={new UDim(0, 4)} />
+          <TextLabel
+            Text={item.rarity}
+            TextSize={8}
+            Font={Enum.Font.GothamBold}
+            TextColor={rarityColor}
+            Native={{ Size: new UDim2(1, 0, 1, 0) }}
+          />
+        </Frame>
+      </Frame>
+
+      <Frame
+        Native={{
+          Size: new UDim2(1, 0, 1, -110),
+          Position: new UDim2(0, 0, 0, 110),
+          BackgroundTransparency: 1,
+          ZIndex: 3,
+        }}
+      >
+        <TextLabel
+          Text={item.name}
+          Font={Enum.Font.GothamBold}
+          TextSize={13}
+          TextColor={Color3.fromRGB(255, 255, 255)}
+          Native={{
+            Size: new UDim2(1, 0, 0, 16),
             TextXAlignment: Enum.TextXAlignment.Left,
           }}
         />
         <TextLabel
-          Text={amount}
-          Font={Enum.Font.FredokaOne}
-          TextColor={
-            amount.sub(0, 1) === "0"
-              ? Color3.fromRGB(220, 100, 80)
-              : Color3.fromRGB(110, 85, 60)
-          }
-          TextSize={18}
+          Text={item.category.upper()}
+          TextSize={9}
+          TextColor={Color3.fromRGB(110, 110, 130)}
           Native={{
-            Size: new UDim2(0.4, 0, 1, 0),
-            Position: new UDim2(0.6, 0, 0, 0),
-            TextXAlignment: Enum.TextXAlignment.Right,
+            Size: new UDim2(1, 0, 0, 12),
+            Position: new UDim2(0, 0, 0, 18),
+            TextXAlignment: Enum.TextXAlignment.Left,
           }}
         />
-      </Group>
+
+        <Frame
+          Native={{
+            Size: new UDim2(1, 0, 0, 30),
+            Position: new UDim2(0, 0, 1, 0),
+            AnchorPoint: new Vector2(0, 1),
+            BackgroundTransparency: 1,
+          }}
+        >
+          <TextLabel
+            Text={`⌬ ${item.price}`}
+            Font={Enum.Font.GothamBold}
+            TextSize={14}
+            TextColor={Color3.fromRGB(160, 255, 160)}
+            Native={{
+              Size: new UDim2(0.6, 0, 1, 0),
+              TextXAlignment: Enum.TextXAlignment.Left,
+            }}
+          />
+          <textbutton
+            Text="+"
+            Font={Enum.Font.GothamBold}
+            TextSize={16}
+            TextColor3={Color3.fromRGB(255, 255, 255)}
+            BackgroundColor3={Color3.fromRGB(60, 50, 90)}
+            Size={new UDim2(0, 28, 0, 28)}
+            Position={new UDim2(1, 0, 0.5, 0)}
+            AnchorPoint={new Vector2(1, 0.5)}
+            ZIndex={5}
+            Event={{ Activated: onAdd }}
+          >
+            <uicorner CornerRadius={new UDim(0, 4)} />
+          </textbutton>
+        </Frame>
+      </Frame>
+    </Frame>
+  );
+}
+
+function CartRow({
+  label,
+  value,
+  isBold,
+}: {
+  label: string;
+  value: string;
+  isBold?: boolean;
+}) {
+  return (
+    <Frame Native={{ Size: new UDim2(1, 0, 0, 18), BackgroundTransparency: 1 }}>
+      <TextLabel
+        Text={label}
+        TextSize={12}
+        TextColor={
+          isBold ? Color3.fromRGB(255, 255, 255) : Color3.fromRGB(130, 130, 150)
+        }
+        Native={{
+          Size: new UDim2(0.5, 0, 1, 0),
+          TextXAlignment: Enum.TextXAlignment.Left,
+        }}
+      />
+      <TextLabel
+        Text={value}
+        Font={isBold ? Enum.Font.GothamBold : Enum.Font.Gotham}
+        TextSize={isBold ? 14 : 12}
+        TextColor={
+          isBold ? Color3.fromRGB(180, 140, 255) : Color3.fromRGB(255, 255, 255)
+        }
+        Native={{
+          Size: new UDim2(0.5, 0, 1, 0),
+          Position: new UDim2(0.5, 0, 0, 0),
+          TextXAlignment: Enum.TextXAlignment.Right,
+        }}
+      />
     </Frame>
   );
 }

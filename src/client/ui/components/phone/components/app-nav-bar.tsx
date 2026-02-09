@@ -23,7 +23,7 @@ export function AppNavBar({
       key="NavBarContainer"
       Native={{
         AnchorPoint: new Vector2(0.5, 0.5),
-        Position: new UDim2(0.5, 0, 0, 75),
+        Position: new UDim2(0.5, 0, 0, -50),
         Size: new UDim2(0.8, 0, 0, 40),
         ZIndex: 15,
       }}
