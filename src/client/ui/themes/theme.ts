@@ -12,6 +12,8 @@ export interface Theme {
 			link: Color3;
 			primary: Color3;
 			secondary: Color3;
+			sub_title: Color3;
+			title: Color3;
 		};
 	};
 	fonts: typeof fonts;

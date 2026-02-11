@@ -11,8 +11,10 @@ export const defaultTheme: Theme = {
 		secondary: Color3.fromRGB(0, 0, 0),
 		text: {
 			link: Color3.fromRGB(0, 0, 0),
-			primary: Color3.fromRGB(0, 0, 0),
+			primary: Color3.fromRGB(166, 173, 200),
 			secondary: Color3.fromRGB(0, 0, 0),
+			title: Color3.fromRGB(205, 214, 244),
+			sub_title: Color3.fromRGB(108, 112, 134),
 		},
 	},
 	fonts,

@@ -18,5 +18,7 @@ export interface AppLayoutProps {
 	readonly children?: React.ReactNode;
 	readonly identity: AppIdentity;
 	readonly onBack: () => void;
+	readonly onSearchChange?: (text: string) => void;
 	readonly onTabChange: (id: string) => void;
+	readonly searchTerm?: string;
 }

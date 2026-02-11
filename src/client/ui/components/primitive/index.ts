@@ -6,4 +6,5 @@ export * from "./image";
 export * from "./layer";
 export * from "./padding-component";
 export * from "./scrolling-frame";
+export * from "./search-bar";
 export * from "./text";
