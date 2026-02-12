@@ -6,6 +6,13 @@ export interface HudTypographyScale {
 }
 
 export interface HudThemeTokens {
+	breakpoints: {
+		compactWidth: number;
+		phoneHeight: number;
+		phoneWidth: number;
+		shortHeight: number;
+		ultraCompactWidth: number;
+	};
 	colors: {
 		background: Color3;
 		blue: Color3;
@@ -22,6 +29,16 @@ export interface HudThemeTokens {
 		textPrimary: Color3;
 		textSecondary: Color3;
 		yellow: Color3;
+	};
+	layers: {
+		base: number;
+		bottom: number;
+		modal: number;
+		overlay: number;
+		side: number;
+		toast: number;
+		top: number;
+		tooltip: number;
 	};
 	radius: {
 		lg: UDim;
@@ -45,6 +62,13 @@ export interface HudThemeTokens {
 }
 
 export const hudTheme: HudThemeTokens = {
+	breakpoints: {
+		compactWidth: 1360,
+		phoneHeight: 440,
+		phoneWidth: 860,
+		shortHeight: 520,
+		ultraCompactWidth: 1080,
+	},
 	colors: {
 		background: Color3.fromRGB(24, 24, 37),
 		blue: Color3.fromRGB(137, 180, 250),
@@ -61,6 +85,16 @@ export const hudTheme: HudThemeTokens = {
 		textPrimary: Color3.fromRGB(205, 214, 244),
 		textSecondary: Color3.fromRGB(166, 173, 200),
 		yellow: Color3.fromRGB(249, 226, 175),
+	},
+	layers: {
+		base: 10,
+		bottom: 40,
+		modal: 80,
+		overlay: 50,
+		side: 30,
+		toast: 60,
+		top: 20,
+		tooltip: 90,
 	},
 	radius: {
 		lg: new UDim(0, 16),

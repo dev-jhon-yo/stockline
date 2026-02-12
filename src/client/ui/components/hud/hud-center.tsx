@@ -2,44 +2,63 @@ import React from "@rbxts/react";
 
 import { useRem } from "client/ui/hooks";
 
+import type { HudLayoutInfo } from "./hud-root";
 import { hudTheme } from "./hud-theme";
 
-export function CenterHud(): React.Element {
+interface CenterHudProps {
+	layout: HudLayoutInfo;
+}
+
+export function CenterHud({ layout }: Readonly<CenterHudProps>): React.Element {
 	const rem = useRem();
+
+	if (layout.isPhone || layout.isShort || layout.isUltraCompact || layout.safeWidth < 980) {
+		return <></>;
+	}
 
 	return (
 		<frame
 			AnchorPoint={new Vector2(0.5, 0.5)}
 			BackgroundTransparency={1}
-			Position={rem(new UDim2(0.5, 0, 0.52, 0), "pixel")}
-			Size={rem(new UDim2(0.26, 0, 0.22, 0), "pixel")}
+			Position={new UDim2(0.5, 0, 0.53, 0)}
+			Size={new UDim2(0, rem(460, "pixel"), 0, rem(150, "pixel"))}
+			ZIndex={hudTheme.layers.overlay}
 		>
 			<uilistlayout
 				HorizontalAlignment={Enum.HorizontalAlignment.Center}
-				Padding={rem(new UDim(0, 8), "pixel")}
+				Padding={rem(new UDim(0, 5), "pixel")}
 				SortOrder={Enum.SortOrder.LayoutOrder}
 				VerticalAlignment={Enum.VerticalAlignment.Center}
 			/>
 			<textlabel
 				BackgroundTransparency={1}
 				Font={Enum.Font.GothamMedium}
-				LayoutOrder={1}
-				Size={rem(new UDim2(0, 64, 0, 64), "pixel")}
+				LayoutOrder={0}
+				Size={new UDim2(1, 0, 0, rem(42, "pixel"))}
 				Text="🏪"
 				TextColor3={hudTheme.colors.textPrimary}
-				TextSize={rem(48, "pixel")}
+				TextSize={rem(34, "pixel")}
+			/>
+			<textlabel
+				BackgroundTransparency={1}
+				Font={Enum.Font.GothamBold}
+				LayoutOrder={1}
+				Size={new UDim2(1, 0, 0, rem(12, "pixel"))}
+				Text="○"
+				TextColor3={hudTheme.colors.textSecondary}
+				TextSize={rem(8, "pixel")}
 			/>
 			<textlabel
 				BackgroundTransparency={1}
 				Font={Enum.Font.GothamMedium}
 				LayoutOrder={2}
-				Size={rem(new UDim2(1, 0, 0, 34), "pixel")}
+				Size={new UDim2(1, 0, 0, rem(32, "pixel"))}
 				Text="First-Person Game View"
 				TextColor3={hudTheme.colors.textSecondary}
-				TextSize={rem(26, "pixel")}
+				TextSize={rem(20, "pixel")}
 			>
 				<uitextsizeconstraint
-					MaxTextSize={rem(30, "pixel")}
+					MaxTextSize={rem(22, "pixel")}
 					MinTextSize={rem(14, "pixel")}
 				/>
 			</textlabel>
@@ -47,13 +66,13 @@ export function CenterHud(): React.Element {
 				BackgroundTransparency={1}
 				Font={Enum.Font.Gotham}
 				LayoutOrder={3}
-				Size={rem(new UDim2(1, 0, 0, 24), "pixel")}
-				Text="HUD elements positioned around viewport"
+				Size={new UDim2(1, 0, 0, rem(22, "pixel"))}
+				Text="HUD elements reposition automatically by viewport"
 				TextColor3={hudTheme.colors.stroke}
-				TextSize={rem(18, "pixel")}
+				TextSize={rem(14, "pixel")}
 			>
 				<uitextsizeconstraint
-					MaxTextSize={rem(20, "pixel")}
+					MaxTextSize={rem(14, "pixel")}
 					MinTextSize={rem(10, "pixel")}
 				/>
 			</textlabel>
