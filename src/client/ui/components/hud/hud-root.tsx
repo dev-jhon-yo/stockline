@@ -1,13 +1,14 @@
-import React, { useEffect, useMemo, useRef } from "@rbxts/react";
-import { TweenService } from "@rbxts/services";
+import React, { useMemo } from "@rbxts/react";
+import { Players } from "@rbxts/services";
 
-import type { ViewportClass } from "client/ui/hooks";
 import { useRem, useViewport } from "client/ui/hooks";
+import { useRootSelector } from "client/ui/hooks/use-selector";
+import { selectPlayerBalance } from "shared/store/persistent/persistent-selectors";
 
 import { UltraWideContainer } from "../ultra-wide-container";
 import { BottomHud } from "./hud-bottom";
 import { CenterHud } from "./hud-center";
-import { pulseTweenInfo } from "./hud-data";
+import { mockDayTime, mockInventory, mockMarketMetrics, mockObjectives } from "./hud-data";
 import { SideHud } from "./hud-side";
 import { hudTheme } from "./hud-theme";
 import { TopHud } from "./hud-top";
@@ -15,10 +16,8 @@ import { TopHud } from "./hud-top";
 const MAX_ASPECT_RATIO = 19 / 9;
 
 export interface HudLayoutInfo {
-	class: ViewportClass;
 	isCompact: boolean;
 	isPhone: boolean;
-	isShort: boolean;
 	isUltraCompact: boolean;
 	safeHeight: number;
 	safeWidth: number;
@@ -27,64 +26,39 @@ export interface HudLayoutInfo {
 export function HudRoot(): React.Element {
 	const rem = useRem();
 	const viewport = useViewport();
-	const ctaGlowRef = useRef<UIStroke>();
-	const toastGlowRef = useRef<UIStroke>();
+	const localPlayer = Players.LocalPlayer;
+	const playerId = tostring(localPlayer.UserId);
+
+	const playerBalance = useRootSelector(selectPlayerBalance(playerId));
+	/**
+	 * TODO: replace fallback once gameplay economy is finalized for HUD
+	 * bootstrap.
+	 */
+	const balance = playerBalance?.currency ?? 12_450;
 
 	const layout = useMemo((): HudLayoutInfo => {
 		const safeWidth = math.min(viewport.safeWidth, viewport.safeHeight * MAX_ASPECT_RATIO);
-		const safeHeight = viewport.safeHeight;
-
+		const { safeHeight } = viewport;
 		const isPhone =
-			viewport.class === "tall" ||
 			safeWidth <= hudTheme.breakpoints.phoneWidth ||
 			safeHeight <= hudTheme.breakpoints.phoneHeight;
 		const isUltraCompact = safeWidth <= hudTheme.breakpoints.ultraCompactWidth;
 		const isCompact = safeWidth <= hudTheme.breakpoints.compactWidth;
-		const isShort = safeHeight <= hudTheme.breakpoints.shortHeight;
-
-		return {
-			class: viewport.class,
-			isCompact,
-			isPhone,
-			isShort,
-			isUltraCompact,
-			safeHeight,
-			safeWidth,
-		};
+		return { isCompact, isPhone, isUltraCompact, safeHeight, safeWidth };
 	}, [viewport]);
 
-	useEffect(() => {
-		const activeTweens = new Array<Tween>();
+	const safePadX = rem(layout.isPhone ? 12 : 16, "pixel");
+	const safePadTop = viewport.insets.top + rem(layout.isPhone ? 10 : 14, "pixel");
+	const safePadBottom = viewport.insets.bottom + rem(layout.isPhone ? 12 : 16, "pixel");
 
-		const ctaGlow = ctaGlowRef.current;
-		if (ctaGlow) {
-			const ctaTween = TweenService.Create(ctaGlow, pulseTweenInfo, {
-				Thickness: rem(2.4, "pixel"),
-				Transparency: 0.12,
-			});
-			ctaTween.Play();
-			activeTweens.push(ctaTween);
-		}
+	const viewportScale = math.clamp(
+		math.min(layout.safeWidth / 1920, layout.safeHeight / 1080),
+		0.75,
+		1.05,
+	);
 
-		const toastGlow = toastGlowRef.current;
-		if (toastGlow) {
-			const toastTween = TweenService.Create(toastGlow, pulseTweenInfo, {
-				Thickness: rem(2, "pixel"),
-				Transparency: 0.22,
-			});
-			toastTween.Play();
-			activeTweens.push(toastTween);
-		}
-
-		return () => {
-			activeTweens.forEach((tween) => {
-				tween.Cancel();
-			});
-		};
-	}, [rem]);
-
-	const padX = rem(layout.isPhone ? 12 : 16, "pixel");
-	const padY = rem(layout.isPhone ? 10 : 14, "pixel");
+	const topMargin = rem(4, "pixel");
+	const sideTop = rem(76, "pixel");
 
 	return (
 		<frame
@@ -94,22 +68,116 @@ export function HudRoot(): React.Element {
 			ZIndex={hudTheme.layers.base}
 		>
 			<UltraWideContainer>
-				<frame
-					BackgroundTransparency={1}
-					Size={new UDim2(1, 0, 1, 0)}
-					ZIndex={hudTheme.layers.base}
-				>
+				<frame BackgroundTransparency={1} BorderSizePixel={0} Size={new UDim2(1, 0, 1, 0)}>
+					<uiscale Scale={viewportScale} />
 					<uipadding
-						PaddingBottom={new UDim(0, viewport.insets.bottom + padY)}
-						PaddingLeft={new UDim(0, viewport.insets.left + padX)}
-						PaddingRight={new UDim(0, viewport.insets.right + padX)}
-						PaddingTop={new UDim(0, viewport.insets.top + padY)}
+						PaddingBottom={new UDim(0, safePadBottom)}
+						PaddingLeft={new UDim(0, viewport.insets.left + safePadX)}
+						PaddingRight={new UDim(0, viewport.insets.right + safePadX)}
+						PaddingTop={new UDim(0, safePadTop)}
 					/>
 
-					<TopHud layout={layout} />
-					<SideHud layout={layout} toastGlowRef={toastGlowRef} />
-					<CenterHud layout={layout} />
-					<BottomHud ctaGlowRef={ctaGlowRef} layout={layout} />
+					{/* TopLeftWrap */}
+					<frame
+						AnchorPoint={new Vector2(0, 0)}
+						AutomaticSize={Enum.AutomaticSize.XY}
+						BackgroundTransparency={1}
+						Position={new UDim2(0, 0, 0, topMargin)}
+						Size={new UDim2(0, 0, 0, 0)}
+					>
+						<TopHud
+							balance={balance}
+							dayTime={mockDayTime}
+							layout={layout}
+							market={mockMarketMetrics}
+							section="left"
+						/>
+					</frame>
+
+					{/* TopCenterWrap */}
+					{layout.isPhone ? undefined : (
+						<frame
+							AnchorPoint={new Vector2(0.5, 0)}
+							AutomaticSize={Enum.AutomaticSize.XY}
+							BackgroundTransparency={1}
+							Position={new UDim2(0.5, 0, 0, topMargin)}
+							Size={new UDim2(0, 0, 0, 0)}
+						>
+							<TopHud
+								balance={balance}
+								dayTime={mockDayTime}
+								layout={layout}
+								market={mockMarketMetrics}
+								section="center"
+							/>
+						</frame>
+					)}
+
+					{/* TopRightWrap */}
+					<frame
+						AnchorPoint={new Vector2(1, 0)}
+						AutomaticSize={Enum.AutomaticSize.XY}
+						BackgroundTransparency={1}
+						Position={new UDim2(1, 0, 0, topMargin)}
+						Size={new UDim2(0, 0, 0, 0)}
+					>
+						<TopHud
+							balance={balance}
+							dayTime={mockDayTime}
+							layout={layout}
+							market={mockMarketMetrics}
+							section="right"
+						/>
+					</frame>
+
+					{/* LeftColumnWrap */}
+					<frame
+						AnchorPoint={new Vector2(0, 0)}
+						AutomaticSize={Enum.AutomaticSize.XY}
+						BackgroundTransparency={1}
+						Position={new UDim2(0, 0, 0, sideTop)}
+						Size={new UDim2(0, 0, 0, 0)}
+					>
+						<SideHud layout={layout} objectives={mockObjectives} section="left" />
+					</frame>
+
+					{/* RightToastWrap */}
+					<frame
+						AnchorPoint={new Vector2(1, 0)}
+						AutomaticSize={Enum.AutomaticSize.XY}
+						BackgroundTransparency={1}
+						Position={new UDim2(1, 0, 0, sideTop)}
+						Size={new UDim2(0, 0, 0, 0)}
+					>
+						<SideHud layout={layout} objectives={mockObjectives} section="right" />
+					</frame>
+
+					{/* CenterWrap */}
+					<frame
+						AnchorPoint={new Vector2(0.5, 0.5)}
+						BackgroundTransparency={1}
+						Position={new UDim2(0.5, 0, 0.5, 0)}
+						Size={new UDim2(0, 0, 0, 0)}
+					>
+						<CenterHud layout={layout} />
+					</frame>
+
+					{/* BottomDockWrap */}
+					<frame
+						AnchorPoint={new Vector2(0.5, 1)}
+						AutomaticSize={Enum.AutomaticSize.XY}
+						BackgroundTransparency={1}
+						Position={new UDim2(0.5, 0, 1, -rem(4, "pixel"))}
+						Size={new UDim2(0, 0, 0, 0)}
+					>
+						<BottomHud
+							inventory={mockInventory}
+							layout={layout}
+							onPurchase={() => {
+								print("Purchase initiated");
+							}}
+						/>
+					</frame>
 				</frame>
 			</UltraWideContainer>
 		</frame>
