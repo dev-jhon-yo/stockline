@@ -1,6 +1,11 @@
-import { hudTheme } from "./hud-theme";
+export interface DayTimeModel {
+	dayLabel: string;
+	periodLabel: string;
+	timeLabel: string;
+}
 
-export interface ChipData {
+export interface MarketMetric {
+	accent: Color3;
 	change: string;
 	changeColor: Color3;
 	icon: string;
@@ -8,80 +13,115 @@ export interface ChipData {
 	value: string;
 }
 
-export interface ObjectiveData {
+export interface ObjectiveModel {
+	actionLabel: string;
+	current: number;
 	description: string;
-	isOptional?: boolean;
-	progressLabel: string;
-	progressValue: number;
-	title: string;
-}
-
-export interface SlotData {
-	count: string;
 	icon: string;
 	id: string;
-	isSelected?: boolean;
+	isOptional?: boolean;
+	reward: string;
+	target: number;
+	title: string;
+	unit?: string;
 }
 
-export const pulseTweenInfo = new TweenInfo(
-	1.4,
-	Enum.EasingStyle.Sine,
-	Enum.EasingDirection.InOut,
-	-1,
-	true,
-);
+export interface InventorySlot {
+	hasNotification?: boolean;
+	icon: string;
+	id: number;
+	name: string;
+	notificationColor?: Color3;
+	quantity?: number;
+}
 
-export const marketChips: ReadonlyArray<ChipData> = [
+export const mockDayTime: DayTimeModel = {
+	dayLabel: "Day 5",
+	periodLabel: "Afternoon",
+	timeLabel: "02:37 PM",
+};
+
+export const mockMarketMetrics: ReadonlyArray<MarketMetric> = [
 	{
-		change: "↗+12%",
-		changeColor: hudTheme.colors.green,
-		icon: "∿",
-		label: "Market Demand",
+		accent: Color3.fromRGB(66, 180, 244),
+		change: "+12%",
+		changeColor: Color3.fromRGB(67, 176, 71),
+		icon: "↗",
+		label: "Demand",
 		value: "High",
 	},
 	{
-		change: "↗+8",
-		changeColor: hudTheme.colors.green,
-		icon: "⚇",
-		label: "Active Buyers",
+		accent: Color3.fromRGB(180, 79, 216),
+		change: "+8",
+		changeColor: Color3.fromRGB(67, 176, 71),
+		icon: "👥",
+		label: "Buyers",
 		value: "247",
 	},
 	{
-		change: "↘-5%",
-		changeColor: hudTheme.colors.red,
-		icon: "⬡",
-		label: "Stock Level",
+		accent: Color3.fromRGB(255, 140, 0),
+		change: "-5%",
+		changeColor: Color3.fromRGB(244, 67, 54),
+		icon: "▣",
+		label: "Stock",
 		value: "85%",
 	},
 ];
 
-export const objectives: ReadonlyArray<ObjectiveData> = [
+export const mockObjectives: ReadonlyArray<ObjectiveModel> = [
 	{
+		id: "1",
+		actionLabel: "Claim",
+		current: 0,
 		description: "Sell any item to a customer",
-		progressLabel: "0/1",
-		progressValue: 0,
-		title: "Make your first sale",
+		icon: "🏆",
+		reward: "100 XP",
+		target: 1,
+		title: "First Sale",
 	},
 	{
-		description: "Accumulate sales to reach the milestone",
-		progressLabel: "7250 / 10000",
-		progressValue: 0.725,
-		title: "Reach $10,000 in total sales",
+		id: "2",
+		actionLabel: "Go",
+		current: 7250,
+		description: "Reach $10,000 in total sales",
+		icon: "💎",
+		reward: "500 Gold",
+		target: 10000,
+		title: "Sales Master",
+		unit: "$",
 	},
 	{
-		description: "Find and stock rare quality items in your shop",
+		id: "3",
+		actionLabel: "View",
+		current: 2,
+		description: "Find rare quality items",
+		icon: "⚔",
 		isOptional: true,
-		progressLabel: "2/5",
-		progressValue: 0.4,
-		title: "Unlock rare items",
+		reward: "Rare Chest",
+		target: 5,
+		title: "Rare Hunter",
 	},
 ];
 
-export const slots: ReadonlyArray<SlotData> = [
-	{ id: "battery", count: "5", icon: "🔋", isSelected: true },
-	{ id: "gem", count: "2", icon: "💎" },
-	{ id: "spark", count: "12", icon: "✨" },
-	{ id: "tree", count: "", icon: "🌳" },
-	{ id: "cube", count: "", icon: "⬡" },
-	{ id: "pill", count: "8", icon: "💊" },
+export const mockInventory: ReadonlyArray<InventorySlot> = [
+	{ id: 1, name: "Empty", icon: "" },
+	{ id: 2, name: "Energy Cell", icon: "🔋", quantity: 5 },
+	{
+		id: 3,
+		name: "Diamond",
+		hasNotification: true,
+		icon: "💎",
+		notificationColor: Color3.fromRGB(66, 180, 244),
+		quantity: 2,
+	},
+	{
+		id: 4,
+		name: "Gold Dust",
+		hasNotification: true,
+		icon: "✨",
+		notificationColor: Color3.fromRGB(244, 67, 54),
+	},
+	{ id: 5, name: "Herbs", icon: "🌱", quantity: 12 },
+	{ id: 6, name: "Scrap", icon: "", quantity: 8 },
+	{ id: 7, name: "Health Pill", icon: "💊" },
 ];
