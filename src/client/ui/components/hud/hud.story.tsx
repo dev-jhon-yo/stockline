@@ -1,7 +1,9 @@
 import React from "@rbxts/react";
+import { ReflexProvider } from "@rbxts/react-reflex";
 import ReactRoblox from "@rbxts/react-roblox";
 import { CreateReactStory } from "@rbxts/ui-labs";
 
+import { store } from "client/store";
 import { RemProvider } from "client/ui/providers/rem-provider";
 
 import { HudRoot } from "./hud-root";
@@ -15,7 +17,9 @@ const story = CreateReactStory(
 	(): React.Element => {
 		return (
 			<RemProvider>
-				<HudRoot />
+				<ReflexProvider producer={store}>
+					<HudRoot />
+				</ReflexProvider>
 			</RemProvider>
 		);
 	},
