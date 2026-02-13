@@ -1,29 +1,21 @@
-import React from "@rbxts/react";
+import React, { useState } from "@rbxts/react";
 
 import { useRem } from "client/ui/hooks";
 
-import type { ChipData, ObjectiveData, SlotData } from "./hud-data";
 import { hudTheme } from "./hud-theme";
 
-interface SurfaceCardProps extends React.PropsWithChildren {
+interface PanelProps extends React.PropsWithChildren {
 	position: UDim2;
 	size: UDim2;
 	zIndex?: number | undefined;
 }
 
-export function SurfaceCard({
-	position,
-	size,
-	zIndex,
-	children,
-}: Readonly<SurfaceCardProps>): React.Element {
+export function Panel({ position, size, zIndex, children }: Readonly<PanelProps>): React.Element {
 	const rem = useRem();
 
 	return (
 		<frame
-			AnchorPoint={new Vector2(0, 0)}
-			BackgroundColor3={hudTheme.colors.surface}
-			BackgroundTransparency={0.18}
+			BackgroundColor3={hudTheme.colors.panel}
 			BorderSizePixel={0}
 			Position={position}
 			Size={size}
@@ -31,326 +23,280 @@ export function SurfaceCard({
 		>
 			<uicorner CornerRadius={rem(hudTheme.radius.lg, "pixel")} />
 			<uistroke
+				ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
 				Color={hudTheme.colors.stroke}
-				Thickness={rem(hudTheme.stroke.regular, "pixel")}
-				Transparency={0.2}
+				Thickness={rem(3, "pixel")}
+				Transparency={0.04}
 			/>
+			{/* Border-bottom depth illusion */}
+			<frame
+				BackgroundColor3={hudTheme.colors.strokeBottom}
+				BorderSizePixel={0}
+				Position={new UDim2(0, 0, 1, -rem(6, "pixel"))}
+				Size={new UDim2(1, 0, 0, rem(6, "pixel"))}
+				ZIndex={(zIndex ?? hudTheme.layers.base) - 1}
+			>
+				<uicorner CornerRadius={rem(hudTheme.radius.lg, "pixel")} />
+			</frame>
+			<frame
+				BackgroundColor3={Color3.fromRGB(255, 255, 255)}
+				BackgroundTransparency={0.88}
+				BorderSizePixel={0}
+				Size={new UDim2(1, 0, 0, rem(2, "pixel"))}
+				ZIndex={(zIndex ?? hudTheme.layers.base) + 1}
+			>
+				<uicorner CornerRadius={rem(hudTheme.radius.md, "pixel")} />
+			</frame>
 			{children}
 		</frame>
 	);
 }
 
-export function StatChip({
-	compact,
-	data,
-}: Readonly<{ compact?: boolean | undefined; data: ChipData }>): React.Element {
-	const rem = useRem();
+interface ChipProps {
+	color: Color3;
+	label: string;
+	text: string;
+}
 
-	const iconSize = rem(compact === true ? 22 : 26, "pixel");
-	const minW = rem(compact === true ? 130 : 154, "pixel");
-	const maxW = rem(compact === true ? 188 : 220, "pixel");
+export function Chip({ color, label, text }: Readonly<ChipProps>): React.Element {
+	const rem = useRem();
 
 	return (
 		<frame
 			AutomaticSize={Enum.AutomaticSize.X}
-			BackgroundTransparency={1}
-			Size={new UDim2(0, 0, 1, 0)}
-		>
-			<uisizeconstraint
-				MaxSize={new Vector2(maxW, math.huge)}
-				MinSize={new Vector2(minW, 0)}
-			/>
-
-			<uipadding
-				PaddingLeft={rem(new UDim(0, 3), "pixel")}
-				PaddingRight={rem(new UDim(0, 3), "pixel")}
-			/>
-			<uilistlayout
-				FillDirection={Enum.FillDirection.Horizontal}
-				Padding={rem(new UDim(0, 7), "pixel")}
-				VerticalAlignment={Enum.VerticalAlignment.Center}
-			/>
-
-			<frame
-				BackgroundColor3={hudTheme.colors.surfaceStrong}
-				BackgroundTransparency={0.4}
-				Size={new UDim2(0, iconSize, 0, iconSize)}
-			>
-				<uicorner CornerRadius={rem(hudTheme.radius.sm, "pixel")} />
-				<textlabel
-					BackgroundTransparency={1}
-					Font={Enum.Font.GothamMedium}
-					Size={new UDim2(1, 0, 1, 0)}
-					Text={data.icon}
-					TextColor3={hudTheme.colors.blue}
-					TextSize={rem(compact === true ? 12 : 14, "pixel")}
-				/>
-			</frame>
-
-			<frame BackgroundTransparency={1} Size={new UDim2(1, 0, 1, 0)}>
-				<uilistlayout
-					FillDirection={Enum.FillDirection.Vertical}
-					Padding={rem(new UDim(0, 1), "pixel")}
-					VerticalAlignment={Enum.VerticalAlignment.Center}
-				/>
-
-				<textlabel
-					BackgroundTransparency={1}
-					Font={Enum.Font.Gotham}
-					Size={new UDim2(1, 0, 0, rem(14, "pixel"))}
-					Text={data.label}
-					TextColor3={hudTheme.colors.textSecondary}
-					TextSize={rem(compact === true ? 9 : 11, "pixel")}
-					TextTruncate={Enum.TextTruncate.AtEnd}
-					TextXAlignment={Enum.TextXAlignment.Left}
-				/>
-
-				<frame BackgroundTransparency={1} Size={new UDim2(1, 0, 0, rem(18, "pixel"))}>
-					<uilistlayout
-						FillDirection={Enum.FillDirection.Horizontal}
-						HorizontalAlignment={Enum.HorizontalAlignment.Left}
-						Padding={rem(new UDim(0, 6), "pixel")}
-						VerticalAlignment={Enum.VerticalAlignment.Center}
-					/>
-
-					<textlabel
-						AutomaticSize={Enum.AutomaticSize.X}
-						BackgroundTransparency={1}
-						Font={Enum.Font.GothamMedium}
-						Size={new UDim2(0, 0, 1, 0)}
-						Text={data.value}
-						TextColor3={hudTheme.colors.textPrimary}
-						TextSize={rem(compact === true ? 12 : 15, "pixel")}
-						TextXAlignment={Enum.TextXAlignment.Left}
-					/>
-
-					<frame
-						AutomaticSize={Enum.AutomaticSize.X}
-						BackgroundColor3={data.changeColor}
-						BackgroundTransparency={0.8}
-						Size={new UDim2(0, 0, 1, 0)}
-					>
-						<uicorner CornerRadius={rem(hudTheme.radius.sm, "pixel")} />
-						<uipadding
-							PaddingLeft={rem(new UDim(0, 5), "pixel")}
-							PaddingRight={rem(new UDim(0, 5), "pixel")}
-						/>
-						<textlabel
-							AutomaticSize={Enum.AutomaticSize.X}
-							BackgroundTransparency={1}
-							Font={Enum.Font.GothamMedium}
-							Size={new UDim2(0, 0, 1, 0)}
-							Text={data.change}
-							TextColor3={data.changeColor}
-							TextSize={rem(compact === true ? 9 : 10, "pixel")}
-						/>
-					</frame>
-				</frame>
-			</frame>
-		</frame>
-	);
-}
-
-export function ObjectiveItem({
-	compact,
-	data,
-}: Readonly<{ compact?: boolean | undefined; data: ObjectiveData }>): React.Element {
-	const rem = useRem();
-	const cardHeight = rem(compact === true ? 94 : 102, "pixel");
-	const indicatorSize = rem(compact === true ? 11 : 13, "pixel");
-	const progressBarHeight = rem(6, "pixel");
-
-	return (
-		<frame
-			BackgroundColor3={hudTheme.colors.surfaceMuted}
-			BackgroundTransparency={0.18}
+			BackgroundColor3={color}
 			BorderSizePixel={0}
-			Size={new UDim2(1, 0, 0, cardHeight)}
+			Size={new UDim2(0, 0, 0, rem(16, "pixel"))}
 		>
-			<uicorner CornerRadius={rem(hudTheme.radius.md, "pixel")} />
-			<uipadding
-				PaddingBottom={rem(new UDim(0, 8), "pixel")}
-				PaddingLeft={rem(new UDim(0, 10), "pixel")}
-				PaddingRight={rem(new UDim(0, 10), "pixel")}
-				PaddingTop={rem(new UDim(0, 8), "pixel")}
-			/>
-			<frame BackgroundTransparency={1} Size={new UDim2(1, 0, 1, 0)}>
-				<frame
-					BackgroundTransparency={1}
-					Position={new UDim2(0, 0, 0, 0)}
-					Size={new UDim2(1, 0, 0, rem(38, "pixel"))}
-				>
-					<uilistlayout
-						FillDirection={Enum.FillDirection.Horizontal}
-						Padding={rem(new UDim(0, 8), "pixel")}
-						VerticalAlignment={Enum.VerticalAlignment.Top}
-					/>
-
-					<frame
-						BackgroundTransparency={1}
-						Size={new UDim2(0, indicatorSize, 0, indicatorSize)}
-					>
-						<uicorner CornerRadius={new UDim(1, 0)} />
-						<uistroke
-							Color={hudTheme.colors.textSecondary}
-							Thickness={rem(1.4, "pixel")}
-							Transparency={0.2}
-						/>
-					</frame>
-
-					<frame BackgroundTransparency={1} Size={new UDim2(1, -indicatorSize - rem(8, "pixel"), 1, 0)}>
-						<textlabel
-							BackgroundTransparency={1}
-							Font={Enum.Font.GothamMedium}
-							Size={new UDim2(1, 0, 0, rem(18, "pixel"))}
-							Text={data.title}
-							TextColor3={hudTheme.colors.textPrimary}
-							TextSize={rem(compact === true ? 11 : 12, "pixel")}
-							TextTruncate={Enum.TextTruncate.AtEnd}
-							TextXAlignment={Enum.TextXAlignment.Left}
-						/>
-						<textlabel
-							BackgroundTransparency={1}
-							Font={Enum.Font.Gotham}
-							Position={new UDim2(0, 0, 0, rem(18, "pixel"))}
-							Size={new UDim2(1, 0, 0, rem(20, "pixel"))}
-							Text={data.description}
-							TextColor3={hudTheme.colors.textSecondary}
-							TextSize={rem(compact === true ? 9 : 10, "pixel")}
-							TextWrapped={true}
-							TextXAlignment={Enum.TextXAlignment.Left}
-							TextYAlignment={Enum.TextYAlignment.Top}
-						/>
-					</frame>
-				</frame>
-
-				<frame
-					BackgroundTransparency={1}
-					Position={new UDim2(0, rem(0, "pixel"), 1, -rem(28, "pixel"))}
-					Size={new UDim2(1, 0, 0, rem(12, "pixel"))}
-				>
-					<textlabel
-						BackgroundTransparency={1}
-						Font={Enum.Font.GothamMedium}
-						Size={new UDim2(0.6, 0, 1, 0)}
-						Text="Progress"
-						TextColor3={hudTheme.colors.textSecondary}
-						TextSize={rem(10, "pixel")}
-						TextXAlignment={Enum.TextXAlignment.Left}
-					/>
-					<textlabel
-						BackgroundTransparency={1}
-						Font={Enum.Font.GothamMedium}
-						Position={new UDim2(0.6, 0, 0, 0)}
-						Size={new UDim2(0.4, 0, 1, 0)}
-						Text={data.progressLabel}
-						TextColor3={hudTheme.colors.textSecondary}
-						TextSize={rem(10, "pixel")}
-						TextXAlignment={Enum.TextXAlignment.Right}
-					/>
-				</frame>
-
-				<frame
-					BackgroundColor3={hudTheme.colors.surfaceStrong}
-					BackgroundTransparency={0.45}
-					BorderSizePixel={0}
-					Position={new UDim2(0, rem(6, "pixel"), 1, -progressBarHeight)}
-					Size={new UDim2(1, -rem(12, "pixel"), 0, progressBarHeight)}
-				>
-					<uicorner CornerRadius={new UDim(1, 0)} />
-					<frame
-						BackgroundColor3={hudTheme.colors.blue}
-						BorderSizePixel={0}
-						Size={new UDim2(data.progressValue, 0, 1, 0)}
-					>
-						<uicorner CornerRadius={new UDim(1, 0)} />
-					</frame>
-				</frame>
-
-				{data.isOptional === true ? (
-					<textlabel
-						BackgroundTransparency={1}
-						Font={Enum.Font.Gotham}
-						Position={new UDim2(1, -rem(84, "pixel"), 0, rem(1, "pixel"))}
-						Size={new UDim2(0, rem(84, "pixel"), 0, rem(14, "pixel"))}
-						Text="(Optional)"
-						TextColor3={hudTheme.colors.textSecondary}
-						TextSize={rem(10, "pixel")}
-						TextXAlignment={Enum.TextXAlignment.Right}
-					/>
-				) : undefined}
-			</frame>
-		</frame>
-	);
-}
-
-export function QuickSlot({
-	compact,
-	data,
-	index,
-}: Readonly<{ compact?: boolean | undefined; data: SlotData; index: number }>): React.Element {
-	const rem = useRem();
-
-	const slotSize = rem(compact === true ? 56 : 64, "pixel");
-	const minW = rem(compact === true ? 48 : 54, "pixel");
-	const maxW = rem(compact === true ? 70 : 76, "pixel");
-
-	const selectedBackground = data.isSelected === true ? hudTheme.colors.surfaceStrong : hudTheme.colors.surface;
-	const selectedTransparency = data.isSelected === true ? 0.08 : 0.33;
-
-	return (
-		<frame
-			BackgroundColor3={selectedBackground}
-			BackgroundTransparency={selectedTransparency}
-			BorderSizePixel={0}
-			Size={new UDim2(0, slotSize, 1, 0)}
-		>
-			<uisizeconstraint
-				MaxSize={new Vector2(maxW, math.huge)}
-				MinSize={new Vector2(minW, 0)}
-			/>
-
-			<uicorner CornerRadius={rem(hudTheme.radius.md, "pixel")} />
+			<uicorner CornerRadius={new UDim(1, 0)} />
 			<uistroke
-				Color={data.isSelected === true ? hudTheme.colors.stroke : hudTheme.colors.strokeSoft}
-				Thickness={rem(data.isSelected === true ? 1.4 : hudTheme.stroke.thin, "pixel")}
-				Transparency={data.isSelected === true ? 0.16 : 0.48}
+				Color={color.Lerp(Color3.fromRGB(0, 0, 0), 0.3)}
+				Thickness={rem(1, "pixel")}
 			/>
-
+			<uipadding
+				PaddingLeft={new UDim(0, rem(6, "pixel"))}
+				PaddingRight={new UDim(0, rem(6, "pixel"))}
+			/>
 			<textlabel
+				AutomaticSize={Enum.AutomaticSize.X}
 				BackgroundTransparency={1}
 				Font={Enum.Font.GothamBold}
-				Position={new UDim2(0.5, 0, 0, rem(-4, "pixel"))}
-				Size={new UDim2(0, rem(18, "pixel"), 0, rem(12, "pixel"))}
-				Text={`${index + 1}`}
-				TextColor3={hudTheme.colors.textSecondary}
+				Size={new UDim2(0, 0, 1, 0)}
+				Text={`${label} ${text}`}
+				TextColor3={hudTheme.colors.white}
 				TextSize={rem(10, "pixel")}
-				TextXAlignment={Enum.TextXAlignment.Center}
 			/>
+		</frame>
+	);
+}
 
+interface ProgressBarProps {
+	fillColor: Color3;
+	progress: number;
+	text: string;
+}
+
+export function ProgressBar({
+	fillColor,
+	progress,
+	text,
+}: Readonly<ProgressBarProps>): React.Element {
+	const rem = useRem();
+	const clamped = math.clamp(progress, 0, 1);
+
+	return (
+		<frame BackgroundTransparency={1} Size={new UDim2(1, 0, 0, rem(26, "pixel"))}>
+			<frame
+				BackgroundColor3={hudTheme.colors.progressBase}
+				BorderSizePixel={0}
+				Size={new UDim2(1, 0, 0, rem(22, "pixel"))}
+			>
+				<uicorner CornerRadius={new UDim(1, 0)} />
+				<uistroke Color={hudTheme.colors.strokeBottom} Thickness={rem(3, "pixel")} />
+				<frame
+					BackgroundColor3={fillColor}
+					BorderSizePixel={0}
+					Size={new UDim2(clamped, 0, 1, 0)}
+				>
+					<uicorner CornerRadius={new UDim(1, 0)} />
+					<uigradient
+						Color={
+							new ColorSequence([
+								new ColorSequenceKeypoint(
+									0,
+									fillColor.Lerp(Color3.fromRGB(255, 255, 255), 0.3),
+								),
+								new ColorSequenceKeypoint(
+									1,
+									fillColor.Lerp(Color3.fromRGB(0, 0, 0), 0.2),
+								),
+							])
+						}
+						Rotation={90}
+					/>
+				</frame>
+			</frame>
 			<textlabel
 				AnchorPoint={new Vector2(0.5, 0.5)}
 				BackgroundTransparency={1}
-				Font={Enum.Font.GothamMedium}
-				Position={new UDim2(0.5, 0, 0.52, 0)}
-				Size={rem(new UDim2(0, 28, 0, 28), "pixel")}
-				Text={data.icon}
-				TextColor3={hudTheme.colors.textPrimary}
-				TextSize={rem(compact === true ? 20 : 23, "pixel")}
-			/>
-
-			{data.count === "" ? undefined : (
-				<textlabel
-					BackgroundTransparency={1}
-					Font={Enum.Font.GothamMedium}
-					Position={rem(new UDim2(1, -6, 1, -15), "pixel")}
-					Size={rem(new UDim2(0, 20, 0, 13), "pixel")}
-					Text={data.count}
-					TextColor3={hudTheme.colors.textPrimary}
-					TextSize={rem(10, "pixel")}
-					TextXAlignment={Enum.TextXAlignment.Right}
-				/>
-			)}
+				Font={Enum.Font.GothamBlack}
+				Position={new UDim2(0.5, 0, 0.43, 0)}
+				Size={new UDim2(1, 0, 0, rem(14, "pixel"))}
+				Text={text}
+				TextColor3={hudTheme.colors.white}
+				TextSize={rem(11, "pixel")}
+			>
+				<uistroke Color={hudTheme.colors.strokeBottom} Thickness={rem(1, "pixel")} />
+			</textlabel>
 		</frame>
+	);
+}
+
+interface ActionButtonProps {
+	icon: string;
+	label: string;
+	onClick?: (() => void) | undefined;
+	position?: UDim2 | undefined;
+	size: UDim2;
+	subtitle?: string | undefined;
+	zIndex?: number | undefined;
+}
+
+export function ActionButton({
+	icon,
+	label,
+	onClick,
+	position,
+	size,
+	subtitle,
+	zIndex,
+}: Readonly<ActionButtonProps>): React.Element {
+	const rem = useRem();
+	const [isHovered, setIsHovered] = useState(false);
+	const [isPressed, setIsPressed] = useState(false);
+
+	const bgTransparency = isHovered ? 0.04 : 0;
+	const offsetY = isPressed ? rem(3, "pixel") : 0;
+
+	return (
+		<textbutton
+			AutoButtonColor={false}
+			BackgroundColor3={hudTheme.colors.buttonBlue}
+			BackgroundTransparency={bgTransparency}
+			BorderSizePixel={0}
+			Event={{
+				Activated: () => onClick?.(),
+				MouseButton1Down: () => {
+					setIsPressed(true);
+				},
+				MouseButton1Up: () => {
+					setIsPressed(false);
+				},
+				MouseEnter: () => {
+					setIsHovered(true);
+				},
+				MouseLeave: () => {
+					setIsHovered(false);
+					setIsPressed(false);
+				},
+			}}
+			Position={position ?? new UDim2()}
+			Size={size}
+			Text=""
+			ZIndex={zIndex ?? hudTheme.layers.bottom}
+		>
+			<uicorner CornerRadius={rem(hudTheme.radius.lg, "pixel")} />
+			<uigradient
+				Color={
+					new ColorSequence([
+						new ColorSequenceKeypoint(0, Color3.fromRGB(110, 224, 255)),
+						new ColorSequenceKeypoint(1, Color3.fromRGB(34, 168, 232)),
+					])
+				}
+				Rotation={90}
+			/>
+			<uistroke Color={Color3.fromRGB(13, 122, 181)} Thickness={rem(4, "pixel")} />
+			<frame
+				BackgroundColor3={Color3.fromRGB(10, 95, 133)}
+				BorderSizePixel={0}
+				Position={new UDim2(0, 0, 1, -rem(8, "pixel") + offsetY)}
+				Size={new UDim2(1, 0, 0, rem(8, "pixel"))}
+				ZIndex={(zIndex ?? hudTheme.layers.bottom) - 1}
+			>
+				<uicorner CornerRadius={rem(hudTheme.radius.lg, "pixel")} />
+			</frame>
+			<frame
+				BackgroundTransparency={1}
+				Position={new UDim2(0, 0, 0, offsetY)}
+				Size={new UDim2(1, 0, 1, 0)}
+			>
+				<uipadding
+					PaddingBottom={new UDim(0, rem(8, "pixel"))}
+					PaddingLeft={new UDim(0, rem(12, "pixel"))}
+					PaddingRight={new UDim(0, rem(12, "pixel"))}
+					PaddingTop={new UDim(0, rem(10, "pixel"))}
+				/>
+				<uilistlayout
+					FillDirection={Enum.FillDirection.Horizontal}
+					Padding={new UDim(0, rem(12, "pixel"))}
+					VerticalAlignment={Enum.VerticalAlignment.Center}
+				/>
+				<textlabel
+					BackgroundColor3={Color3.fromRGB(26, 107, 154)}
+					BorderSizePixel={0}
+					Font={Enum.Font.GothamBlack}
+					Size={new UDim2(0, rem(36, "pixel"), 0, rem(36, "pixel"))}
+					Text="E"
+					TextColor3={hudTheme.colors.white}
+					TextSize={rem(20, "pixel")}
+				>
+					<uicorner CornerRadius={rem(hudTheme.radius.sm, "pixel")} />
+					<uistroke Color={Color3.fromRGB(13, 85, 128)} Thickness={rem(3, "pixel")} />
+				</textlabel>
+				<frame BackgroundTransparency={1} Size={new UDim2(1, -rem(52, "pixel"), 1, 0)}>
+					<uilistlayout
+						FillDirection={Enum.FillDirection.Horizontal}
+						Padding={new UDim(0, rem(10, "pixel"))}
+						VerticalAlignment={Enum.VerticalAlignment.Center}
+					/>
+					<textlabel
+						BackgroundColor3={Color3.fromRGB(255, 255, 255)}
+						BackgroundTransparency={0.76}
+						BorderSizePixel={0}
+						Font={Enum.Font.GothamBold}
+						Size={new UDim2(0, rem(34, "pixel"), 0, rem(34, "pixel"))}
+						Text={icon}
+						TextColor3={hudTheme.colors.white}
+						TextSize={rem(22, "pixel")}
+					>
+						<uicorner CornerRadius={rem(hudTheme.radius.md, "pixel")} />
+					</textlabel>
+					<frame BackgroundTransparency={1} Size={new UDim2(1, -rem(44, "pixel"), 1, 0)}>
+						<textlabel
+							BackgroundTransparency={1}
+							Font={Enum.Font.GothamBlack}
+							Position={new UDim2(0, 0, 0, rem(2, "pixel"))}
+							Size={new UDim2(1, 0, 0, rem(20, "pixel"))}
+							Text={label}
+							TextColor3={hudTheme.colors.white}
+							TextSize={rem(20, "pixel")}
+							TextXAlignment={Enum.TextXAlignment.Left}
+						/>
+						{subtitle !== undefined ? (
+							<textlabel
+								BackgroundTransparency={1}
+								Font={Enum.Font.GothamBold}
+								Position={new UDim2(0, 0, 0, rem(24, "pixel"))}
+								Size={new UDim2(1, 0, 0, rem(14, "pixel"))}
+								Text={subtitle}
+								TextColor3={Color3.fromRGB(220, 240, 255)}
+								TextSize={rem(11, "pixel")}
+								TextXAlignment={Enum.TextXAlignment.Left}
+							/>
+						) : undefined}
+					</frame>
+				</frame>
+			</frame>
+		</textbutton>
 	);
 }

@@ -1,283 +1,233 @@
-import React, { useMemo } from "@rbxts/react";
+import React from "@rbxts/react";
 
 import { useRem } from "client/ui/hooks";
 
-import type { ChipData } from "./hud-data";
-import { marketChips } from "./hud-data";
-import { StatChip, SurfaceCard } from "./hud-primitives";
+import type { DayTimeModel, MarketMetric } from "./hud-data";
+import { Chip, Panel } from "./hud-primitives";
 import type { HudLayoutInfo } from "./hud-root";
 import { hudTheme } from "./hud-theme";
 
 interface TopHudProps {
+	balance: number;
+	dayTime: DayTimeModel;
 	layout: HudLayoutInfo;
+	market: ReadonlyArray<MarketMetric>;
+	onSettings?: (() => void) | undefined;
 }
 
-function pickVisibleChips(layout: HudLayoutInfo): ReadonlyArray<ChipData> {
-	if (layout.isPhone) {
-		return [];
-	}
-
-	if (layout.isUltraCompact) {
-		return marketChips.filter((_chip, index) => index < 2);
-	}
-
-	return marketChips;
-}
-
-export function TopHud({ layout }: Readonly<TopHudProps>): React.Element {
+export function TopHud({
+	balance,
+	dayTime,
+	layout,
+	market,
+	onSettings,
+}: Readonly<TopHudProps>): React.Element {
 	const rem = useRem();
-
-	const chips = useMemo(() => pickVisibleChips(layout), [layout]);
-
-	const barHeight = rem(layout.isPhone ? 72 : layout.isUltraCompact ? 78 : 84, "pixel");
-	const sideGap = rem(layout.isPhone ? 8 : 12, "pixel");
-
-	const leftWidth = rem(layout.isPhone ? 294 : layout.isCompact ? 372 : 420, "pixel");
-	const rightWidth = rem(layout.isPhone ? 268 : layout.isCompact ? 320 : 356, "pixel");
-
-	const balanceWidth = rem(layout.isPhone ? 208 : layout.isCompact ? 244 : 272, "pixel");
-	const settingsWidth = rem(layout.isPhone ? 42 : 54, "pixel");
-	const settingsHeight = rem(layout.isPhone ? 26 : 30, "pixel");
-
-	const centerMin = rem(layout.isUltraCompact ? 280 : 340, "pixel");
-	const centerMax = rem(layout.isUltraCompact ? 500 : 640, "pixel");
-	const centerAvailable = math.max(
-		0,
-		layout.safeWidth - leftWidth - rightWidth - sideGap * 2 - rem(16, "pixel"),
-	);
-	const centerWidth = math.clamp(centerAvailable, 0, centerMax);
-	const showCenter = !layout.isUltraCompact && chips.size() > 0 && centerWidth >= centerMin;
+	const topOffset = rem(4, "pixel");
+	const rowHeight = rem(58, "pixel");
 
 	return (
 		<frame
 			BackgroundTransparency={1}
-			Position={new UDim2(0, 0, 0, 0)}
-			Size={new UDim2(1, 0, 0, barHeight)}
+			Position={new UDim2(0, 0, 0, topOffset)}
+			Size={new UDim2(1, 0, 0, rowHeight)}
 			ZIndex={hudTheme.layers.top}
 		>
-			<frame
-				BackgroundTransparency={1}
-				Position={new UDim2(0, 0, 0, 0)}
-				Size={new UDim2(0, leftWidth, 1, 0)}
-				ZIndex={hudTheme.layers.top}
+			<Panel
+				position={new UDim2(0, 0, 0, 0)}
+				size={new UDim2(0, rem(layout.isPhone ? 240 : 280, "pixel"), 1, 0)}
+				zIndex={hudTheme.layers.top}
 			>
-				<SurfaceCard position={new UDim2(0, 0, 0, 0)} size={new UDim2(1, 0, 1, 0)}>
+				<uipadding
+					PaddingLeft={new UDim(0, rem(12, "pixel"))}
+					PaddingRight={new UDim(0, rem(12, "pixel"))}
+					PaddingTop={new UDim(0, rem(8, "pixel"))}
+				/>
+				<uilistlayout
+					FillDirection={Enum.FillDirection.Horizontal}
+					Padding={new UDim(0, rem(10, "pixel"))}
+					VerticalAlignment={Enum.VerticalAlignment.Center}
+				/>
+				<textlabel
+					BackgroundTransparency={1}
+					Font={Enum.Font.GothamBlack}
+					Size={new UDim2(0, rem(56, "pixel"), 0, rem(24, "pixel"))}
+					Text={`☀ ${dayTime.dayLabel}`}
+					TextColor3={hudTheme.colors.white}
+					TextSize={rem(13, "pixel")}
+					TextXAlignment={Enum.TextXAlignment.Left}
+				/>
+				<frame
+					BackgroundColor3={Color3.fromRGB(61, 66, 112)}
+					BorderSizePixel={0}
+					Size={new UDim2(0, rem(2, "pixel"), 0, rem(22, "pixel"))}
+				>
+					<uicorner CornerRadius={new UDim(1, 0)} />
+				</frame>
+				<textlabel
+					BackgroundTransparency={1}
+					Font={Enum.Font.RobotoMono}
+					Size={new UDim2(0, rem(82, "pixel"), 0, rem(24, "pixel"))}
+					Text={`🕒 ${dayTime.timeLabel}`}
+					TextColor3={hudTheme.colors.white}
+					TextSize={rem(13, "pixel")}
+					TextXAlignment={Enum.TextXAlignment.Left}
+				/>
+				<Chip color={hudTheme.colors.green} label="" text={dayTime.periodLabel} />
+			</Panel>
+
+			{layout.isPhone ? undefined : (
+				<Panel
+					position={new UDim2(0.5, -rem(layout.isCompact ? 200 : 260, "pixel") / 2, 0, 0)}
+					size={new UDim2(0, rem(layout.isCompact ? 400 : 520, "pixel"), 1, 0)}
+					zIndex={hudTheme.layers.top}
+				>
 					<uipadding
-						PaddingBottom={rem(new UDim(0, 10), "pixel")}
-						PaddingLeft={rem(new UDim(0, 12), "pixel")}
-						PaddingRight={rem(new UDim(0, 12), "pixel")}
-						PaddingTop={rem(new UDim(0, 10), "pixel")}
+						PaddingLeft={new UDim(0, rem(12, "pixel"))}
+						PaddingRight={new UDim(0, rem(12, "pixel"))}
+						PaddingTop={new UDim(0, rem(8, "pixel"))}
 					/>
 					<uilistlayout
 						FillDirection={Enum.FillDirection.Horizontal}
-						Padding={rem(new UDim(0, 10), "pixel")}
+						HorizontalAlignment={Enum.HorizontalAlignment.Center}
+						Padding={new UDim(0, rem(12, "pixel"))}
 						VerticalAlignment={Enum.VerticalAlignment.Center}
 					/>
-
-					<frame
-						BackgroundColor3={hudTheme.colors.green}
-						BackgroundTransparency={0.8}
-						BorderSizePixel={0}
-						Size={rem(new UDim2(0, layout.isPhone ? 36 : 42, 0, layout.isPhone ? 36 : 42), "pixel")}
-					>
-						<uicorner CornerRadius={rem(hudTheme.radius.md, "pixel")} />
-						<textlabel
-							BackgroundTransparency={1}
-							Font={Enum.Font.GothamBold}
-							Size={new UDim2(1, 0, 1, 0)}
-							Text="☼"
-							TextColor3={hudTheme.colors.green}
-							TextSize={rem(layout.isPhone ? 16 : 18, "pixel")}
-						/>
-					</frame>
-
-					<frame BackgroundTransparency={1} Size={new UDim2(1, 0, 1, 0)}>
-						<textlabel
-							BackgroundTransparency={1}
-							Font={Enum.Font.Gotham}
-							Position={new UDim2(0, 0, 0, 0)}
-							Size={new UDim2(1, 0, 0.34, 0)}
-							Text="Day 5"
-							TextColor3={hudTheme.colors.textSecondary}
-							TextSize={rem(13, "pixel")}
-							TextXAlignment={Enum.TextXAlignment.Left}
-						/>
-						<textlabel
-							BackgroundTransparency={1}
-							Font={Enum.Font.GothamMedium}
-							Position={new UDim2(0, 0, 0.3, 0)}
-							Size={new UDim2(1, 0, 0.7, 0)}
-							Text="◷ 02:37 PM"
-							TextColor3={hudTheme.colors.textPrimary}
-							TextSize={rem(layout.isPhone ? 20 : layout.isUltraCompact ? 24 : 27, "pixel")}
-							TextXAlignment={Enum.TextXAlignment.Left}
-						>
-							<uitextsizeconstraint
-								MaxTextSize={rem(layout.isUltraCompact ? 21 : 23, "pixel")}
-								MinTextSize={rem(14, "pixel")}
-							/>
-						</textlabel>
-					</frame>
-
-					{layout.isPhone ? undefined : (
-						<frame
-							BackgroundColor3={hudTheme.colors.green}
-							BackgroundTransparency={0.85}
-							BorderSizePixel={0}
-							Size={rem(new UDim2(0, layout.isCompact ? 78 : 90, 0, 28), "pixel")}
-						>
-							<uicorner CornerRadius={rem(hudTheme.radius.sm, "pixel")} />
-							<textlabel
-								BackgroundTransparency={1}
-								Font={Enum.Font.GothamMedium}
-								Size={new UDim2(1, 0, 1, 0)}
-								Text="Afternoon"
-								TextColor3={hudTheme.colors.green}
-								TextSize={rem(12, "pixel")}
-							/>
-						</frame>
-					)}
-				</SurfaceCard>
-			</frame>
-
-			{showCenter ? (
-				<frame
-					AnchorPoint={new Vector2(0.5, 0)}
-					BackgroundTransparency={1}
-					Position={new UDim2(0.5, 0, 0, 0)}
-					Size={new UDim2(0, centerWidth, 1, 0)}
-					ZIndex={hudTheme.layers.top}
-				>
-					<SurfaceCard position={new UDim2(0, 0, 0, 0)} size={new UDim2(1, 0, 1, 0)}>
-						<uipadding
-							PaddingBottom={rem(new UDim(0, 8), "pixel")}
-							PaddingLeft={rem(new UDim(0, 10), "pixel")}
-							PaddingRight={rem(new UDim(0, 10), "pixel")}
-							PaddingTop={rem(new UDim(0, 8), "pixel")}
-						/>
-						<uilistlayout
-							FillDirection={Enum.FillDirection.Horizontal}
-							HorizontalAlignment={Enum.HorizontalAlignment.Center}
-							Padding={rem(new UDim(0, 8), "pixel")}
-							VerticalAlignment={Enum.VerticalAlignment.Center}
-						/>
-						{chips.map((chip, index) => {
-							return (
-								<React.Fragment key={chip.label}>
-									<StatChip
-										compact={layout.isCompact || layout.isUltraCompact}
-										data={chip}
+					{market.map((metric, index) => {
+						return (
+							<React.Fragment key={metric.label}>
+								<frame
+									BackgroundTransparency={1}
+									Size={
+										new UDim2(
+											0,
+											rem(layout.isCompact ? 112 : 140, "pixel"),
+											1,
+											0,
+										)
+									}
+								>
+									<textlabel
+										BackgroundTransparency={1}
+										Font={Enum.Font.GothamBlack}
+										Position={new UDim2(0, 0, 0, rem(6, "pixel"))}
+										Size={new UDim2(1, 0, 0, rem(10, "pixel"))}
+										Text={metric.label.upper()}
+										TextColor3={hudTheme.colors.textMuted}
+										TextSize={rem(9, "pixel")}
+										TextXAlignment={Enum.TextXAlignment.Left}
 									/>
-									{index < chips.size() - 1 ? (
-										<frame
-											BackgroundColor3={hudTheme.colors.stroke}
-											BackgroundTransparency={0.62}
-											Size={new UDim2(0, rem(1, "pixel"), 0, rem(30, "pixel"))}
-										/>
-									) : undefined}
-								</React.Fragment>
-							);
-						})}
-					</SurfaceCard>
-				</frame>
-			) : undefined}
+									<textlabel
+										BackgroundTransparency={1}
+										Font={Enum.Font.GothamBlack}
+										Position={new UDim2(0, 0, 0, rem(18, "pixel"))}
+										Size={new UDim2(0, rem(74, "pixel"), 0, rem(20, "pixel"))}
+										Text={`${metric.icon} ${metric.value}`}
+										TextColor3={hudTheme.colors.white}
+										TextSize={rem(16, "pixel")}
+										TextXAlignment={Enum.TextXAlignment.Left}
+									/>
+									<Chip
+										color={metric.changeColor}
+										label=""
+										text={metric.change}
+									/>
+								</frame>
+								{index < market.size() - 1 ? (
+									<frame
+										BackgroundColor3={Color3.fromRGB(61, 66, 112)}
+										BorderSizePixel={0}
+										Size={new UDim2(0, rem(2, "pixel"), 0, rem(28, "pixel"))}
+									>
+										<uicorner CornerRadius={new UDim(1, 0)} />
+									</frame>
+								) : undefined}
+							</React.Fragment>
+						);
+					})}
+				</Panel>
+			)}
 
 			<frame
 				AnchorPoint={new Vector2(1, 0)}
 				BackgroundTransparency={1}
 				Position={new UDim2(1, 0, 0, 0)}
-				Size={new UDim2(0, rightWidth, 1, 0)}
-				ZIndex={hudTheme.layers.top}
+				Size={new UDim2(0, rem(layout.isPhone ? 230 : 320, "pixel"), 1, 0)}
 			>
 				<uilistlayout
 					FillDirection={Enum.FillDirection.Horizontal}
 					HorizontalAlignment={Enum.HorizontalAlignment.Right}
-					Padding={new UDim(0, sideGap)}
+					Padding={new UDim(0, rem(8, "pixel"))}
 					VerticalAlignment={Enum.VerticalAlignment.Center}
 				/>
-
-				<SurfaceCard
+				<Panel
 					position={new UDim2(0, 0, 0, 0)}
-					size={new UDim2(0, balanceWidth, 1, 0)}
+					size={new UDim2(0, rem(layout.isPhone ? 184 : 264, "pixel"), 1, 0)}
+					zIndex={hudTheme.layers.top}
 				>
 					<uipadding
-						PaddingBottom={rem(new UDim(0, 9), "pixel")}
-						PaddingLeft={rem(new UDim(0, 10), "pixel")}
-						PaddingRight={rem(new UDim(0, 10), "pixel")}
-						PaddingTop={rem(new UDim(0, 9), "pixel")}
+						PaddingLeft={new UDim(0, rem(10, "pixel"))}
+						PaddingRight={new UDim(0, rem(10, "pixel"))}
+						PaddingTop={new UDim(0, rem(8, "pixel"))}
 					/>
 					<uilistlayout
 						FillDirection={Enum.FillDirection.Horizontal}
-						Padding={rem(new UDim(0, 9), "pixel")}
+						Padding={new UDim(0, rem(8, "pixel"))}
 						VerticalAlignment={Enum.VerticalAlignment.Center}
 					/>
-
-					<frame
-						BackgroundColor3={hudTheme.colors.green}
-						BackgroundTransparency={0.8}
+					<textlabel
+						BackgroundColor3={Color3.fromRGB(255, 193, 7)}
 						BorderSizePixel={0}
-						Size={rem(new UDim2(0, layout.isPhone ? 32 : 38, 0, layout.isPhone ? 32 : 38), "pixel")}
+						Font={Enum.Font.GothamBlack}
+						Size={new UDim2(0, rem(30, "pixel"), 0, rem(30, "pixel"))}
+						Text="$"
+						TextColor3={Color3.fromRGB(255, 248, 225)}
+						TextSize={rem(20, "pixel")}
 					>
-						<uicorner CornerRadius={rem(hudTheme.radius.md, "pixel")} />
+						<uicorner CornerRadius={new UDim(1, 0)} />
+						<uistroke Color={Color3.fromRGB(230, 162, 0)} Thickness={rem(3, "pixel")} />
+					</textlabel>
+					<frame BackgroundTransparency={1} Size={new UDim2(1, -rem(44, "pixel"), 1, 0)}>
 						<textlabel
 							BackgroundTransparency={1}
-							Font={Enum.Font.GothamBold}
-							Size={new UDim2(1, 0, 1, 0)}
-							Text="◉"
-							TextColor3={hudTheme.colors.green}
-							TextSize={rem(layout.isPhone ? 13 : 15, "pixel")}
-						/>
-					</frame>
-
-					<frame BackgroundTransparency={1} Size={new UDim2(1, 0, 1, 0)}>
-						<textlabel
-							BackgroundTransparency={1}
-							Font={Enum.Font.Gotham}
-							Size={new UDim2(1, 0, 0.34, 0)}
+							Font={Enum.Font.GothamBlack}
+							Position={new UDim2(0, 0, 0, rem(6, "pixel"))}
+							Size={new UDim2(1, 0, 0, rem(10, "pixel"))}
 							Text="BALANCE"
-							TextColor3={hudTheme.colors.textSecondary}
-							TextSize={rem(12, "pixel")}
+							TextColor3={hudTheme.colors.textMuted}
+							TextSize={rem(9, "pixel")}
 							TextXAlignment={Enum.TextXAlignment.Left}
 						/>
 						<textlabel
 							BackgroundTransparency={1}
-							Font={Enum.Font.GothamMedium}
-							Position={new UDim2(0, 0, 0.3, 0)}
-							Size={new UDim2(1, 0, 0.7, 0)}
-							Text="$12,450"
-							TextColor3={hudTheme.colors.green}
-							TextSize={rem(layout.isPhone ? 18 : layout.isUltraCompact ? 23 : 26, "pixel")}
+							Font={Enum.Font.RobotoMono}
+							Position={new UDim2(0, 0, 0, rem(18, "pixel"))}
+							Size={new UDim2(1, 0, 0, rem(24, "pixel"))}
+							Text={`$${string.format("%d", balance)}`}
+							TextColor3={hudTheme.colors.yellow}
+							TextSize={rem(layout.isPhone ? 16 : 24, "pixel")}
 							TextXAlignment={Enum.TextXAlignment.Left}
 						>
-							<uitextsizeconstraint
-								MaxTextSize={rem(layout.isUltraCompact ? 20 : 25, "pixel")}
-								MinTextSize={rem(13, "pixel")}
+							<uistroke
+								Color={hudTheme.colors.strokeBottom}
+								Thickness={rem(1, "pixel")}
 							/>
 						</textlabel>
 					</frame>
-				</SurfaceCard>
-
-				<frame
-					BackgroundColor3={hudTheme.colors.surface}
-					BackgroundTransparency={0.28}
+				</Panel>
+				<textbutton
+					AutoButtonColor={false}
+					BackgroundColor3={Color3.fromRGB(61, 66, 112)}
 					BorderSizePixel={0}
-					Size={new UDim2(0, settingsWidth, 0, settingsHeight)}
+					Event={{ Activated: () => onSettings?.() }}
+					Size={new UDim2(0, rem(40, "pixel"), 0, rem(40, "pixel"))}
+					Text="⚙"
+					TextColor3={hudTheme.colors.white}
+					TextSize={rem(20, "pixel")}
 				>
-					<uicorner CornerRadius={rem(hudTheme.radius.pill, "pixel")} />
-					<uistroke
-						Color={hudTheme.colors.stroke}
-						Thickness={rem(1, "pixel")}
-						Transparency={0.25}
-					/>
-					<textlabel
-						BackgroundTransparency={1}
-						Font={Enum.Font.GothamMedium}
-						Size={new UDim2(1, 0, 1, 0)}
-						Text="⚙"
-						TextColor3={hudTheme.colors.textSecondary}
-						TextSize={rem(layout.isPhone ? 15 : 18, "pixel")}
-					/>
-				</frame>
+					<uicorner CornerRadius={new UDim(1, 0)} />
+					<uistroke Color={hudTheme.colors.stroke} Thickness={rem(3, "pixel")} />
+				</textbutton>
 			</frame>
 		</frame>
 	);
