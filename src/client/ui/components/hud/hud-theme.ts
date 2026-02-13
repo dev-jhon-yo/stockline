@@ -1,15 +1,17 @@
 export const hudTheme = {
 	breakpoints: {
-		compactWidth: 1220,
-		phoneHeight: 500,
-		phoneWidth: 860,
-		ultraCompactWidth: 980,
+		compactWidth: 1360,
+		phoneHeight: 560,
+		phoneWidth: 960,
+		ultraCompactWidth: 1080,
 	},
 	colors: {
 		background: Color3.fromRGB(58, 63, 92),
 		buttonBlue: Color3.fromRGB(34, 168, 232),
+		buttonBlueDark: Color3.fromRGB(10, 95, 133),
 		green: Color3.fromRGB(67, 176, 71),
 		panel: Color3.fromRGB(42, 45, 74),
+		panelElevated: Color3.fromRGB(53, 56, 96),
 		progressBase: Color3.fromRGB(30, 32, 53),
 		stroke: Color3.fromRGB(30, 32, 53),
 		strokeBottom: Color3.fromRGB(20, 22, 40),
@@ -26,10 +28,18 @@ export const hudTheme = {
 		tooltip: 80,
 		top: 50,
 	},
-	radius: {
-		lg: new UDim(0, 16),
-		md: new UDim(0, 12),
-		sm: new UDim(0, 8),
+	tokens: {
+		depthOffset: 4,
+		gap2: 8,
+		gap3: 12,
+		pad2: 8,
+		pad3: 12,
+		pad4: 16,
+		radiusLg: 18,
+		radiusMd: 14,
+		radiusSm: 10,
+		strokeLg: 3,
+		strokeMd: 2,
 	},
 };
 
