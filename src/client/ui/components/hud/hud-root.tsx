@@ -30,35 +30,38 @@ export function HudRoot(): React.Element {
 	const playerId = tostring(localPlayer.UserId);
 
 	const playerBalance = useRootSelector(selectPlayerBalance(playerId));
-	/**
-	 * TODO: replace fallback once gameplay economy is finalized for HUD
-	 * bootstrap.
-	 */
 	const balance = playerBalance?.currency ?? 12_450;
 
 	const layout = useMemo((): HudLayoutInfo => {
 		const safeWidth = math.min(viewport.safeWidth, viewport.safeHeight * MAX_ASPECT_RATIO);
 		const { safeHeight } = viewport;
+
 		const isPhone =
 			safeWidth <= hudTheme.breakpoints.phoneWidth ||
 			safeHeight <= hudTheme.breakpoints.phoneHeight;
+
 		const isUltraCompact = safeWidth <= hudTheme.breakpoints.ultraCompactWidth;
 		const isCompact = safeWidth <= hudTheme.breakpoints.compactWidth;
+
 		return { isCompact, isPhone, isUltraCompact, safeHeight, safeWidth };
 	}, [viewport]);
 
-	const safePadX = rem(layout.isPhone ? 12 : 16, "pixel");
-	const safePadTop = viewport.insets.top + rem(layout.isPhone ? 10 : 14, "pixel");
+	// Safe-area padding (device inset aware)
+	const safePadX = rem(layout.isPhone ? 12 : 20, "pixel");
+	const safePadTop = viewport.insets.top + rem(layout.isPhone ? 12 : 16, "pixel");
 	const safePadBottom = viewport.insets.bottom + rem(layout.isPhone ? 12 : 16, "pixel");
 
-	const viewportScale = math.clamp(
-		math.min(layout.safeWidth / 1920, layout.safeHeight / 1080),
-		0.75,
-		1.05,
-	);
+	// Spacing between rows
+	const topMargin = rem(6, "pixel");
+	const sideTop = rem(82, "pixel");
 
-	const topMargin = rem(4, "pixel");
-	const sideTop = rem(76, "pixel");
+	// --- TopRow column system ---
+	// These are SCALE widths so the center block stays truly centered,
+	// independent of left/right content. Tune these ratios if you want more/less
+	// space for Objectives vs top center pills.
+	const leftCol = layout.isPhone ? 0.56 : 0.4;
+	const rightCol = layout.isPhone ? 0.44 : 0.28;
+	const centerCol = 1 - leftCol - rightCol;
 
 	return (
 		<frame
@@ -69,7 +72,6 @@ export function HudRoot(): React.Element {
 		>
 			<UltraWideContainer>
 				<frame BackgroundTransparency={1} BorderSizePixel={0} Size={new UDim2(1, 0, 1, 0)}>
-					<uiscale Scale={viewportScale} />
 					<uipadding
 						PaddingBottom={new UDim(0, safePadBottom)}
 						PaddingLeft={new UDim(0, viewport.insets.left + safePadX)}
@@ -77,60 +79,101 @@ export function HudRoot(): React.Element {
 						PaddingTop={new UDim(0, safePadTop)}
 					/>
 
-					{/* TopLeftWrap */}
+					{/* =========================
+						TOP ROW (3-COLUMN GRID)
+						Left / Center / Right
+						This prevents "visual drift" caused by autosized left/right content.
+						========================= */}
 					<frame
-						AnchorPoint={new Vector2(0, 0)}
-						AutomaticSize={Enum.AutomaticSize.XY}
+						AutomaticSize={Enum.AutomaticSize.Y}
 						BackgroundTransparency={1}
 						Position={new UDim2(0, 0, 0, topMargin)}
-						Size={new UDim2(0, 0, 0, 0)}
+						Size={new UDim2(1, 0, 0, 0)}
 					>
-						<TopHud
-							balance={balance}
-							dayTime={mockDayTime}
-							layout={layout}
-							market={mockMarketMetrics}
-							section="left"
+						<uilistlayout
+							FillDirection={Enum.FillDirection.Horizontal}
+							HorizontalAlignment={Enum.HorizontalAlignment.Left}
+							SortOrder={Enum.SortOrder.LayoutOrder}
+							VerticalAlignment={Enum.VerticalAlignment.Top}
 						/>
-					</frame>
 
-					{/* TopCenterWrap */}
-					{layout.isPhone ? undefined : (
+						{/* LEFT COL */}
 						<frame
-							AnchorPoint={new Vector2(0.5, 0)}
-							AutomaticSize={Enum.AutomaticSize.XY}
+							AutomaticSize={Enum.AutomaticSize.Y}
 							BackgroundTransparency={1}
-							Position={new UDim2(0.5, 0, 0, topMargin)}
-							Size={new UDim2(0, 0, 0, 0)}
+							LayoutOrder={1}
+							Size={new UDim2(leftCol, 0, 0, 0)}
 						>
-							<TopHud
-								balance={balance}
-								dayTime={mockDayTime}
-								layout={layout}
-								market={mockMarketMetrics}
-								section="center"
-							/>
+							{/* Keep content pinned left */}
+							<frame
+								AutomaticSize={Enum.AutomaticSize.XY}
+								BackgroundTransparency={1}
+								Size={new UDim2(0, 0, 0, 0)}
+							>
+								<TopHud
+									balance={balance}
+									dayTime={mockDayTime}
+									layout={layout}
+									market={mockMarketMetrics}
+									section="left"
+								/>
+							</frame>
 						</frame>
-					)}
 
-					{/* TopRightWrap */}
-					<frame
-						AnchorPoint={new Vector2(1, 0)}
-						AutomaticSize={Enum.AutomaticSize.XY}
-						BackgroundTransparency={1}
-						Position={new UDim2(1, 0, 0, topMargin)}
-						Size={new UDim2(0, 0, 0, 0)}
-					>
-						<TopHud
-							balance={balance}
-							dayTime={mockDayTime}
-							layout={layout}
-							market={mockMarketMetrics}
-							section="right"
-						/>
+						{/* CENTER COL */}
+						<frame
+							AutomaticSize={Enum.AutomaticSize.Y}
+							BackgroundTransparency={1}
+							LayoutOrder={2}
+							Size={new UDim2(centerCol, 0, 0, 0)}
+						>
+							{/* Center content within the column */}
+							{layout.isPhone ? undefined : (
+								<frame
+									AnchorPoint={new Vector2(0.5, 0)}
+									AutomaticSize={Enum.AutomaticSize.XY}
+									BackgroundTransparency={1}
+									Position={new UDim2(0.5, 0, 0, 0)}
+									Size={new UDim2(0, 0, 0, 0)}
+								>
+									<TopHud
+										balance={balance}
+										dayTime={mockDayTime}
+										layout={layout}
+										market={mockMarketMetrics}
+										section="center"
+									/>
+								</frame>
+							)}
+						</frame>
+
+						{/* RIGHT COL */}
+						<frame
+							AutomaticSize={Enum.AutomaticSize.Y}
+							BackgroundTransparency={1}
+							LayoutOrder={3}
+							Size={new UDim2(rightCol, 0, 0, 0)}
+						>
+							{/* Keep content pinned right */}
+							<frame
+								AnchorPoint={new Vector2(1, 0)}
+								AutomaticSize={Enum.AutomaticSize.XY}
+								BackgroundTransparency={1}
+								Position={new UDim2(1, 0, 0, 0)}
+								Size={new UDim2(0, 0, 0, 0)}
+							>
+								<TopHud
+									balance={balance}
+									dayTime={mockDayTime}
+									layout={layout}
+									market={mockMarketMetrics}
+									section="right"
+								/>
+							</frame>
+						</frame>
 					</frame>
 
-					{/* LeftColumnWrap */}
+					{/* LEFT PANEL (Objectives) */}
 					<frame
 						AnchorPoint={new Vector2(0, 0)}
 						AutomaticSize={Enum.AutomaticSize.XY}
@@ -141,7 +184,7 @@ export function HudRoot(): React.Element {
 						<SideHud layout={layout} objectives={mockObjectives} section="left" />
 					</frame>
 
-					{/* RightToastWrap */}
+					{/* RIGHT TOAST */}
 					<frame
 						AnchorPoint={new Vector2(1, 0)}
 						AutomaticSize={Enum.AutomaticSize.XY}
@@ -152,7 +195,7 @@ export function HudRoot(): React.Element {
 						<SideHud layout={layout} objectives={mockObjectives} section="right" />
 					</frame>
 
-					{/* CenterWrap */}
+					{/* CENTER CROSSHAIR */}
 					<frame
 						AnchorPoint={new Vector2(0.5, 0.5)}
 						BackgroundTransparency={1}
@@ -162,12 +205,12 @@ export function HudRoot(): React.Element {
 						<CenterHud layout={layout} />
 					</frame>
 
-					{/* BottomDockWrap */}
+					{/* BOTTOM */}
 					<frame
 						AnchorPoint={new Vector2(0.5, 1)}
 						AutomaticSize={Enum.AutomaticSize.XY}
 						BackgroundTransparency={1}
-						Position={new UDim2(0.5, 0, 1, -rem(4, "pixel"))}
+						Position={new UDim2(0.5, 0, 1, -rem(6, "pixel"))}
 						Size={new UDim2(0, 0, 0, 0)}
 					>
 						<BottomHud

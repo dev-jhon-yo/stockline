@@ -20,8 +20,18 @@ export function Panel({
 	children,
 }: Readonly<PanelProps>): React.Element {
 	const rem = useRem();
-	const depthOffset = rem(hudTheme.tokens.depthOffset, "pixel");
+
+	// MUCH larger depth offset to match Figma's pronounced shadow (6-8px)
+	const depthOffset = rem(7, "pixel");
 	const cornerRadius = rem(hudTheme.tokens.radiusLg, "pixel");
+
+	// IMPORTANT:
+	// - If AutomaticSize is enabled, do NOT apply a default Size.
+	// - Default Size is only safe when AutomaticSize is NOT used.
+	const resolvedSize =
+		size ?? (automaticSize !== undefined ? new UDim2(0, 0, 0, 0) : new UDim2(0, 320, 0, 64));
+
+	const resolvedZ = zIndex ?? hudTheme.layers.base;
 
 	return (
 		<frame
@@ -29,38 +39,54 @@ export function Panel({
 			BackgroundTransparency={1}
 			BorderSizePixel={0}
 			Position={position ?? new UDim2()}
-			Size={size ?? new UDim2(0, 320, 0, 64)}
-			ZIndex={zIndex ?? hudTheme.layers.base}
+			Size={resolvedSize}
+			ZIndex={resolvedZ}
 		>
+			{/* Base (depth) - VERY DARK shadow matching Figma */}
 			<frame
-				BackgroundColor3={hudTheme.colors.strokeBottom}
+				key="BASE_DEPTH"
+				BackgroundColor3={Color3.fromRGB(20, 23, 38)}
 				BorderSizePixel={0}
 				Position={new UDim2(0, 0, 0, depthOffset)}
 				Size={new UDim2(1, 0, 1, 0)}
-				ZIndex={(zIndex ?? hudTheme.layers.base) - 1}
+				ZIndex={resolvedZ - 1}
 			>
 				<uicorner CornerRadius={new UDim(0, cornerRadius)} />
 			</frame>
+
+			{/* Face - Solid color matching Figma (no strong gradient) */}
 			<frame
-				BackgroundColor3={hudTheme.colors.panel}
+				BackgroundColor3={Color3.fromRGB(42, 45, 74)}
 				BorderSizePixel={0}
 				Size={new UDim2(1, 0, 1, 0)}
-				ZIndex={zIndex ?? hudTheme.layers.base}
+				ZIndex={resolvedZ}
 			>
 				<uicorner CornerRadius={new UDim(0, cornerRadius)} />
+
+				{/* VERY subtle gradient (barely visible) */}
+				<uigradient
+					Color={
+						new ColorSequence([
+							new ColorSequenceKeypoint(0, Color3.fromRGB(44, 47, 77)),
+							new ColorSequenceKeypoint(1, Color3.fromRGB(40, 43, 72)),
+						])
+					}
+					Rotation={90}
+					Transparency={
+						new NumberSequence([
+							new NumberSequenceKeypoint(0, 0.5),
+							new NumberSequenceKeypoint(1, 0),
+						])
+					}
+				/>
+
+				{/* Dark border stroke */}
 				<uistroke
 					ApplyStrokeMode={Enum.ApplyStrokeMode.Border}
-					Color={hudTheme.colors.stroke}
+					Color={Color3.fromRGB(28, 31, 52)}
 					Thickness={rem(hudTheme.tokens.strokeLg, "pixel")}
 				/>
-				<frame
-					BackgroundColor3={Color3.fromRGB(255, 255, 255)}
-					BackgroundTransparency={0.9}
-					BorderSizePixel={0}
-					Size={new UDim2(1, 0, 0, rem(2, "pixel"))}
-				>
-					<uicorner CornerRadius={new UDim(0, cornerRadius)} />
-				</frame>
+
 				{children}
 			</frame>
 		</frame>
@@ -186,7 +212,7 @@ export function ActionButton({
 	const [isHovered, setIsHovered] = useState(false);
 	const [isPressed, setIsPressed] = useState(false);
 
-	const depthOffset = rem(isPressed ? 1 : hudTheme.tokens.depthOffset, "pixel");
+	const depthOffset = rem(isPressed ? 2 : hudTheme.tokens.depthOffset, "pixel");
 	let pressScale = 1;
 	if (isPressed) {
 		pressScale = 0.985;
